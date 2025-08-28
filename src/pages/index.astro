@@ -1,0 +1,75 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+import ToolCard from '../components/ToolCard.astro';
+
+// LA NUEVA FORMA: import.meta.glob()
+// Esto importa los módulos de forma "lazy" (perezosa), lo cual es más eficiente.
+const toolImports = import.meta.glob('./tools/*.astro');
+
+// Como los módulos se importan de forma perezosa, necesitamos resolverlos.
+// Este código convierte el objeto de importaciones en una lista de herramientas renderizables.
+const allTools = await Promise.all(
+  Object.values(toolImports).map(async (importTool) => {
+    const tool = await importTool();
+    return tool;
+  })
+);
+---
+
+<Layout title="AI Component Factory">
+	<header>
+		<h1 class="title">AI Component Factory</h1>
+		<p class="subtitle">
+			Un portafolio vivo de herramientas y componentes web. Cada proyecto aquí
+			fue concebido como una idea en una hoja de cálculo, desarrollado por una IA,
+			y desplegado automáticamente.
+		</p>
+	</header>
+
+	<main class="tool-grid">
+		{allTools.length > 0 ? (
+			allTools.map(tool => (
+				<ToolCard 
+					href={tool.url} 
+					title={tool.frontmatter.title} 
+					description={tool.frontmatter.description}
+					tags={tool.frontmatter.tags}
+				/>
+			))
+		) : (
+			<p class="placeholder">La fábrica está calentando motores... Pronto aparecerán aquí las nuevas herramientas creadas por la IA.</p>
+		)}
+	</main>
+</Layout>
+
+<style>
+	header {
+		text-align: center;
+		margin-bottom: 4rem;
+	}
+	.title {
+		font-size: 3rem;
+		font-weight: 900;
+		margin-bottom: 1rem;
+	}
+	.subtitle {
+		font-size: 1.1rem;
+		color: #555;
+		max-width: 60ch;
+		margin: 0 auto;
+	}
+	.tool-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		gap: 1.5rem;
+	}
+	.placeholder {
+		grid-column: 1 / -1;
+		text-align: center;
+		padding: 3rem;
+		border: 2px dashed #ccc;
+		border-radius: 12px;
+		color: #777;
+	}
+</style>

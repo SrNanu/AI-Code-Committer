@@ -1,0 +1,61 @@
+---
+// src/components/ToolCard.astro
+const { href, title, description, tags } = Astro.props;
+---
+<a href={href} class="card">
+  <div class="content">
+    <h3>{title}</h3>
+    <p>{description}</p>
+  </div>
+  <div class="tags-container">
+    {tags && tags.map(tag => <span class="tag">{tag}</span>)}
+  </div>
+</a>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%; /* Para que todas las tarjetas tengan la misma altura en la cuadrícula */
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 16px;
+    text-decoration: none;
+    color: #111;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
+  }
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+    border-color: rgba(var(--accent), 0.5);
+  }
+  h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: rgb(var(--accent-dark));
+  }
+  p {
+    margin: 0;
+    color: #555;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  .tags-container {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .tag {
+    background-color: rgba(var(--accent-light), 0.8);
+    color: rgb(var(--accent-dark));
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+</style>

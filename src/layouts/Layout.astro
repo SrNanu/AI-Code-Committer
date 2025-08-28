@@ -1,0 +1,47 @@
+---
+// src/layouts/Layout.astro
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Un portafolio de herramientas web construidas por IA." />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		
+		<!-- Importamos una fuente moderna de Google Fonts -->
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+
+		<title>{title}</title>
+	</head>
+	<body>
+		<!-- El <slot /> es donde Astro inyectará el contenido de cada página -->
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		--accent: 136, 58, 234;
+		--accent-light: 224, 204, 250;
+		--accent-dark: 49, 10, 101;
+		--accent-gradient: linear-gradient(45deg, rgb(var(--accent)), rgb(var(--accent-light)) 30%, white 60%);
+	}
+	html {
+		font-family: 'Inter', sans-serif;
+		background: #ffffff;
+	}
+	body {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
+</style>
