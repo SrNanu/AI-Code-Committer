@@ -14,7 +14,7 @@ export const frontmatter = {
 <Layout title={frontmatter.title}>
   
   <!-- Este es el contenido específico de la página -->
-  <a href="/" class="back-link">&larr; Volver a la Fábrica</a>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
   
   <div class="tool-container">
     <h1>{frontmatter.title}</h1>
