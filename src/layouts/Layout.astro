@@ -33,50 +33,20 @@ const { title } = Astro.props;
 		--font-family-sans: 'Inter', sans-serif;
 		--font-family-mono: 'IBM Plex Mono', monospace;
 
-		/* Light Theme */
-		--background-light: #F5F5F7;
-		--text-light: #1D1D1F;
-		--card-background-light: rgba(255, 255, 255, 0.6);
-		--card-border-light: rgba(0, 0, 0, 0.1);
-		--accent-light: 0, 122, 255; /* Apple Blue */
-		--accent-dark-light: 0, 100, 210;
-
-		/* Dark Theme */
-		--background-dark: #121212;
-		--text-dark: #EAEAEA;
-		--card-background-dark: rgba(30, 30, 30, 0.5);
-		--card-border-dark: rgba(255, 255, 255, 0.15);
-		--accent-dark: 50, 170, 255; /* Lighter Blue for dark mode */
-		--accent-dark-dark: 70, 190, 255;
-	}
-
-	/* Default to light theme */
-	html {
-		--bg: var(--background-light);
-		--text-color: var(--text-light);
-		--card-bg: var(--card-background-light);
-		--card-border: var(--card-border-light);
-		--accent: var(--accent-light);
-		--accent-dark: var(--accent-dark-light);
-	}
-
-	/* Dark theme using media query */
-	@media (prefers-color-scheme: dark) {
-		html {
-			--bg: var(--background-dark);
-			--text-color: var(--text-dark);
-			--card-bg: var(--card-background-dark);
-			--card-border: var(--card-border-dark);
-			--accent: var(--accent-dark);
-			--accent-dark: var(--accent-dark-dark);
-		}
+		/* Neon Theme */
+		--background: #0D0D0D;
+		--text-primary: #E0E0E0;
+		--text-secondary: #A0A0A0;
+		--neon-pink: 255, 0, 255;
+		--neon-cyan: 0, 255, 255;
+		--card-bg: rgba(20, 20, 20, 0.65);
+		--card-border: rgba(var(--neon-cyan), 0.2);
 	}
 
 	html {
 		font-family: var(--font-family-sans);
-		background-color: var(--bg);
-		color: var(--text-color);
-		transition: background-color 0.3s ease, color 0.3s ease;
+		background-color: var(--background);
+		color: var(--text-primary);
 	}
 
 	body {
@@ -95,21 +65,19 @@ const { title } = Astro.props;
 		width: 100vw;
 		height: 100vh;
 		z-index: -1;
-		background: radial-gradient(ellipse at top left, rgba(var(--accent), 0.5), transparent 50%),
-					radial-gradient(ellipse at bottom right, rgba(var(--accent-dark), 0.5), transparent 50%);
-		background-size: 150% 150%;
-		animation: gradient-animation 8s ease-in-out infinite;
+		background: linear-gradient(45deg, rgba(var(--neon-pink), 0.3), rgba(var(--neon-cyan), 0.3));
+		background-size: 200% 200%;
+		animation: gradient-flow 6s ease-in-out infinite;
+		filter: blur(80px);
 	}
 
-	@keyframes gradient-animation {
-		0% { background-position: 0% 0%; }
-		25% { background-position: 100% 0%; }
-		50% { background-position: 100% 100%; }
-		75% { background-position: 0% 100%; }
-		100% { background-position: 0% 0%; }
+	@keyframes gradient-flow {
+		0% { background-position: 0% 50%; }
+		50% { background-position: 100% 50%; }
+		100% { background-position: 0% 50%; }
 	}
 
 	h1, h2, h3, h4, h5, h6 {
-		font-weight: 700;
+		font-weight: 900;
 	}
 </style>
