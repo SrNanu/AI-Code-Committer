@@ -1,4 +1,4 @@
-name: GitHub Pages Astro CI
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -10,13 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout 🛎️
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # <-- ACTUALIZADO a v4
 
       - name: Setup Astro + Node
-        uses: withastro/action@v1 # <-- Usamos la Action oficial de Astro
-        with:
-          node-version: 18 # O la versión que estés usando
-          # package-manager: pnpm # Descomenta si usas pnpm en lugar de npm
+        uses: withastro/action@v2 # <-- ACTUALIZADO a v2 (¡ESTA ES LA CORRECCIÓN CLAVE!)
 
       - name: Install dependencies
         run: npm install
