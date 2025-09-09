@@ -46,30 +46,40 @@ const allTools = await Promise.all(
 <style>
 	header {
 		text-align: center;
-		margin-bottom: 4rem;
+		margin-bottom: 6rem;
+		padding: 4rem 0;
 	}
 	.title {
-		font-size: 3rem;
+		font-size: 4rem;
 		font-weight: 900;
 		margin-bottom: 1rem;
+		background: linear-gradient(45deg, rgb(var(--accent)), rgb(var(--accent-dark)));
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		text-fill-color: transparent;
 	}
 	.subtitle {
-		font-size: 1.1rem;
-		color: #555;
-		max-width: 60ch;
+		font-size: 1.25rem;
+		color: var(--text-color);
+		opacity: 0.8;
+		max-width: 65ch;
 		margin: 0 auto;
 	}
 	.tool-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-		gap: 1.5rem;
+		grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+		gap: 2rem;
 	}
 	.placeholder {
 		grid-column: 1 / -1;
 		text-align: center;
-		padding: 3rem;
-		border: 2px dashed #ccc;
-		border-radius: 12px;
-		color: #777;
+		padding: 4rem;
+		background-color: var(--card-bg);
+		border: 1px solid var(--card-border);
+		border-radius: 16px;
+		color: var(--text-color);
+		opacity: 0.7;
+		backdrop-filter: blur(10px);
 	}
 </style>
