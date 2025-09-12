@@ -23,8 +23,19 @@ const { title } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
+		<header class="main-header">
+			<nav>
+				<a href="/" class="logo">AI Factory</a>
+				<ul>
+					<li><a href="/">Herramientas</a></li>
+					<li><a href="/about">Sobre el Proyecto</a></li>
+				</ul>
+			</nav>
+		</header>
 		<!-- El <slot /> es donde Astro inyectará el contenido de cada página -->
-		<slot />
+		<main>
+			<slot />
+		</main>
 	</body>
 </html>
 
@@ -82,9 +93,46 @@ const { title } = Astro.props;
 	body {
 		max-width: 1200px;
 		margin: 0 auto;
-		padding: 2rem;
+		padding: 0 2rem; /* Ajustado para padding horizontal */
 		position: relative;
 		z-index: 1;
+	}
+
+	.main-header {
+		padding: 1.5rem 0;
+		margin-bottom: 2rem;
+	}
+
+	nav {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.logo {
+		font-weight: 900;
+		font-size: 1.5rem;
+		text-decoration: none;
+		color: var(--text-color);
+	}
+
+	nav ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		gap: 2rem;
+	}
+
+	nav a {
+		text-decoration: none;
+		color: var(--text-color);
+		opacity: 0.8;
+		transition: opacity 0.3s ease;
+	}
+
+	nav a:hover {
+		opacity: 1;
 	}
 
 	body::before {

@@ -1,0 +1,234 @@
+---
+// src/pages/tools/calculadora-interes.astro
+import Layout from '../../layouts/Layout.astro';
+
+export const frontmatter = {
+  title: 'Calculadora de Interés Compuesto',
+  description: 'Visualiza el crecimiento de tus inversiones a lo largo del tiempo.',
+  tags: ['finanzas', 'calculadora', 'inversión']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="initial-investment">Inversión Inicial ($)</label>
+          <input type="number" id="initial-investment" value="1000">
+        </div>
+        <div class="input-group">
+          <label for="monthly-contribution">Aporte Mensual ($)</label>
+          <input type="number" id="monthly-contribution" value="100">
+        </div>
+        <div class="input-group">
+          <label for="annual-rate">Tasa de Interés Anual (%)</label>
+          <input type="number" id="annual-rate" value="7">
+        </div>
+        <div class="input-group">
+          <label for="years">Período (Años)</label>
+          <input type="number" id="years" value="10">
+        </div>
+      </div>
+
+      <div class="results-container">
+        <div class="summary">
+          <div id="summary-final-amount" class="summary-item">
+            <h4>Valor Futuro</h4>
+            <p>$0</p>
+          </div>
+          <div id="summary-total-invested" class="summary-item">
+            <h4>Total Aportado</h4>
+            <p>$0</p>
+          </div>
+          <div id="summary-total-interest" class="summary-item">
+            <h4>Total Intereses</h4>
+            <p>$0</p>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="interest-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</Layout>
+
+<script>
+  import { Chart, registerables } from 'chart.js';
+  Chart.register(...registerables);
+
+  const initialInvestmentInput = document.getElementById('initial-investment');
+  const monthlyContributionInput = document.getElementById('monthly-contribution');
+  const annualRateInput = document.getElementById('annual-rate');
+  const yearsInput = document.getElementById('years');
+  const inputs = [initialInvestmentInput, monthlyContributionInput, annualRateInput, yearsInput];
+
+  const summaryFinalAmount = document.querySelector('#summary-final-amount p');
+  const summaryTotalInvested = document.querySelector('#summary-total-invested p');
+  const summaryTotalInterest = document.querySelector('#summary-total-interest p');
+
+  const chartCanvas = document.getElementById('interest-chart');
+  let chartInstance = null;
+
+  function calculate() {
+    const P = parseFloat(initialInvestmentInput.value) || 0;
+    const M = parseFloat(monthlyContributionInput.value) || 0;
+    const r = (parseFloat(annualRateInput.value) || 0) / 100;
+    const t = parseInt(yearsInput.value) || 0;
+
+    const monthlyRate = r / 12;
+    const totalMonths = t * 12;
+    
+    let futureValue = P;
+    const yearlyData = [P];
+    const labels = ['Año 0'];
+
+    for (let i = 1; i <= totalMonths; i++) {
+      futureValue = futureValue * (1 + monthlyRate) + M;
+      if (i % 12 === 0) {
+        yearlyData.push(futureValue);
+        labels.push(`Año ${i / 12}`);
+      }
+    }
+
+    const totalInvested = P + (M * totalMonths);
+    const totalInterest = futureValue - totalInvested;
+
+    const formatter = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+    summaryFinalAmount.textContent = formatter.format(futureValue);
+    summaryTotalInvested.textContent = formatter.format(totalInvested);
+    summaryTotalInterest.textContent = formatter.format(totalInterest);
+
+    updateChart(labels, yearlyData);
+  }
+
+  function updateChart(labels, data) {
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    const ctx = chartCanvas.getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Crecimiento de la Inversión',
+          data: data,
+          borderColor: 'rgb(var(--accent))',
+          backgroundColor: 'rgba(var(--accent), 0.2)',
+          fill: true,
+          tension: 0.4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+  inputs.forEach(input => input.addEventListener('input', calculate));
+
+  // Initial calculation
+  calculate();
+</script>
+
+<style>
+  .back-link {
+    display: inline-block;
+    margin-bottom: 2rem;
+    text-decoration: none;
+    font-weight: 700;
+    color: var(--text-color);
+    opacity: 0.8;
+  }
+  .tool-container {
+    padding: 2rem;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    background-color: var(--card-bg);
+  }
+  
+  .calculator-wrapper {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 3rem;
+    margin-top: 2rem;
+  }
+
+  .form-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .input-group label {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    opacity: 0.8;
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background-color: rgba(0,0,0,0.05);
+    color: var(--text-color);
+  }
+
+  .results-container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .summary-item {
+    background-color: rgba(0,0,0,0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+  }
+
+  .summary-item h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    opacity: 0.7;
+  }
+
+  .summary-item p {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: rgb(var(--accent));
+  }
+
+  .chart-container {
+    flex-grow: 1;
+    position: relative;
+    min-height: 300px;
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Sobre el Proyecto">
+  <section class="about-section">
+    <h1 class="section-title">Sobre el Proyecto</h1>
+    <div class="about-content">
+      <p>
+        <strong>AI Component Factory</strong> es un experimento en el desarrollo de software moderno. La premisa es simple: ¿puede una IA construir, mantener y desplegar un portafolio de herramientas web funcionales con una mínima intervención humana?
+      </p>
+      <p>
+        Cada herramienta que ves en esta página comenzó como una idea en una simple hoja de cálculo. A partir de esa descripción, un agente de IA se encarga de todo el ciclo de vida del desarrollo:
+      </p>
+      <ul>
+        <li><strong>Análisis:</strong> Interpreta los requisitos de la herramienta.</li>
+        <li><strong>Codificación:</strong> Escribe el código en Astro, React, o la tecnología que considere más adecuada.</li>
+        <li><strong>Estilo:</strong> Diseña la interfaz de usuario, a menudo inspirándose en estéticas modernas.</li>
+        <li><strong>Despliegue:</strong> Empaqueta y despliega la nueva herramienta en esta misma página.</li>
+      </ul>
+      <p>
+        Este proyecto no solo busca automatizar la programación, sino también explorar los límites de la creatividad y la resolución de problemas de las IAs en un entorno de producción real.
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .about-section {
+    padding: 2rem 0;
+  }
+
+  .section-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 3rem;
+    background: linear-gradient(45deg, rgb(var(--accent)), rgb(var(--accent-dark)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+  }
+
+  .about-content {
+    max-width: 75ch;
+    margin: 0 auto;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text-color);
+    opacity: 0.9;
+  }
+
+  .about-content p {
+    margin-bottom: 1.5rem;
+  }
+
+  .about-content ul {
+    list-style-position: inside;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .about-content li {
+    margin-bottom: 0.75rem;
+  }
+
+  .about-content strong {
+    color: rgb(var(--accent));
+    font-weight: 700;
+  }
+</style>

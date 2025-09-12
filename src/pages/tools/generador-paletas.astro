@@ -1,0 +1,175 @@
+---
+// src/pages/tools/generador-paletas.astro
+import Layout from '../../layouts/Layout.astro';
+
+export const frontmatter = {
+  title: 'Generador de Paletas de Colores',
+  description: 'Crea esquemas de colores armoniosos para tus proyectos con un solo clic.',
+  tags: ['diseño', 'colores', 'css']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <div class="palette-controls">
+      <button id="generate-btn">Generar Nueva Paleta</button>
+    </div>
+
+    <div id="palette-container" class="palette-container"></div>
+  </div>
+
+</Layout>
+
+<script>
+  const generateBtn = document.getElementById('generate-btn');
+  const paletteContainer = document.getElementById('palette-container');
+
+  // Función para generar un color HSL aleatorio
+  function randomHsl() {
+    const h = Math.floor(Math.random() * 360);
+    const s = Math.floor(Math.random() * 30) + 70; // Saturación alta
+    const l = Math.floor(Math.random() * 40) + 40; // Luminosidad media
+    return [h, s, l];
+  }
+
+  // Función para convertir HSL a Hex
+  function hslToHex(h, s, l) {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = n => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  }
+
+  // Genera una paleta análoga
+  function generateAnalogousPalette(baseH, s, l) {
+    const palette = [];
+    const step = 30;
+    for (let i = -2; i <= 2; i++) {
+      let h = (baseH + i * step + 360) % 360;
+      palette.push(hslToHex(h, s, l));
+    }
+    return palette;
+  }
+
+  function generatePalette() {
+    const [h, s, l] = randomHsl();
+    const palette = generateAnalogousPalette(h, s, l);
+    displayPalette(palette);
+  }
+
+  function displayPalette(palette) {
+    paletteContainer.innerHTML = '';
+    palette.forEach(color => {
+      const swatch = document.createElement('div');
+      swatch.className = 'color-swatch';
+      swatch.style.backgroundColor = color;
+
+      const hexCode = document.createElement('span');
+      hexCode.className = 'hex-code';
+      hexCode.textContent = color;
+
+      swatch.appendChild(hexCode);
+      paletteContainer.appendChild(swatch);
+
+      swatch.addEventListener('click', () => {
+        navigator.clipboard.writeText(color).then(() => {
+          hexCode.textContent = '¡Copiado!';
+          setTimeout(() => { hexCode.textContent = color; }, 1000);
+        });
+      });
+    });
+  }
+
+  generateBtn.addEventListener('click', generatePalette);
+
+  // Generar paleta inicial
+  generatePalette();
+</script>
+
+<style>
+  .back-link {
+    display: inline-block;
+    margin-bottom: 2rem;
+    text-decoration: none;
+    font-weight: 700;
+    color: var(--text-color);
+    opacity: 0.8;
+  }
+  .tool-container {
+    padding: 2rem;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    background-color: var(--card-bg);
+  }
+  
+  .palette-controls {
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  #generate-btn {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 999px;
+    border: none;
+    background-color: rgb(var(--accent));
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  #generate-btn:hover {
+    background-color: rgb(var(--accent-dark));
+    transform: scale(1.05);
+  }
+
+  .palette-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    margin-top: 3rem;
+    height: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+
+  .color-swatch {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  .color-swatch:hover {
+    transform: scale(1.03);
+    z-index: 10;
+  }
+
+  .hex-code {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-family: var(--font-family-mono);
+    font-size: 1rem;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .color-swatch:hover .hex-code {
+    opacity: 1;
+  }
+</style>

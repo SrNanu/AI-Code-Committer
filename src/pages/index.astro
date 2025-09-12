@@ -27,7 +27,11 @@ const allTools = await Promise.all(
 		</p>
 	</header>
 
-	<main class="tool-grid">
+	<div class="search-container">
+		<input type="search" id="search-input" placeholder="Buscar por nombre, descripción o tag...">
+	</div>
+
+	<main id="tools" class="tool-grid">
 		{allTools.length > 0 ? (
 			allTools.map(tool => (
 				<ToolCard 
@@ -46,11 +50,11 @@ const allTools = await Promise.all(
 <style>
 	header {
 		text-align: center;
-		margin-bottom: 6rem;
-		padding: 4rem 0;
+		margin-bottom: 4rem; /* Reducido */
+		padding: 2rem 0; /* Reducido */
 	}
 	.title {
-		font-size: 4rem;
+		font-size: 3.5rem; /* Ligeramente más pequeño */
 		font-weight: 900;
 		margin-bottom: 1rem;
 		background: linear-gradient(45deg, rgb(var(--accent)), rgb(var(--accent-dark)));
@@ -60,7 +64,7 @@ const allTools = await Promise.all(
 		text-fill-color: transparent;
 	}
 	.subtitle {
-		font-size: 1.25rem;
+		font-size: 1.15rem; /* Ligeramente más pequeño */
 		color: var(--text-color);
 		opacity: 0.8;
 		max-width: 65ch;
@@ -68,8 +72,8 @@ const allTools = await Promise.all(
 	}
 	.tool-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-		gap: 2rem;
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Tarjetas más pequeñas */
+		gap: 1.5rem; /* Espacio reducido */
 	}
 	.placeholder {
 		grid-column: 1 / -1;
@@ -82,4 +86,54 @@ const allTools = await Promise.all(
 		opacity: 0.7;
 		backdrop-filter: blur(10px);
 	}
+
+	.search-container {
+		margin-bottom: 3rem;
+	}
+
+	.search-container #search-input {
+		width: 100%;
+		padding: 1rem 1.5rem;
+		font-size: 1.1rem;
+		border-radius: 12px;
+		border: 1px solid var(--card-border);
+		background-color: var(--card-bg);
+		color: var(--text-color);
+		box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+		transition: all 0.3s ease;
+	}
+
+	#search-input:focus {
+		outline: none;
+		border-color: rgba(var(--accent), 0.8);
+		box-shadow: 0 0 0 4px rgba(var(--accent), 0.15);
+	}
 </style>
+
+<script>
+	document.addEventListener('DOMContentLoaded', () => {
+		const searchInput = document.getElementById('search-input') as HTMLInputElement;
+		// Seleccionamos las tarjetas de una forma más robusta
+		const allTools = document.querySelectorAll('.tool-grid .card') as NodeListOf<HTMLElement>;
+
+		if (!searchInput || allTools.length === 0) return;
+
+		searchInput.addEventListener('input', (e) => {
+			const searchTerm = (e.target as HTMLInputElement).value.toLowerCase().trim();
+
+			allTools.forEach(toolCard => {
+				const title = toolCard.querySelector('h3')?.textContent?.toLowerCase() || '';
+				const description = toolCard.querySelector('p')?.textContent?.toLowerCase() || '';
+				const tags = Array.from(toolCard.querySelectorAll('.tag')).map(tag => tag.textContent?.toLowerCase() || '').join(' ');
+
+				const cardContent = `${title} ${description} ${tags}`;
+
+				if (cardContent.includes(searchTerm)) {
+					toolCard.style.display = 'flex';
+				} else {
+					toolCard.style.display = 'none';
+				}
+			});
+		});
+	});
+</script>
