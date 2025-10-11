@@ -5,7 +5,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
    // Configuración condicional para el despliegue
   site: process.env.NODE_ENV === 'production'
-    ? 'https://SrNanu.github.io' // URL en producción
+    ? 'https://srnanu.github.io/AI-Code-Committer/' // URL en producción
     : 'http://localhost:4321',  // URL en desarrollo local
 
   base: process.env.NODE_ENV === 'production'
