@@ -9,6 +9,6 @@ export default defineConfig({
     : 'http://localhost:4321',  // URL en desarrollo local
 
   base: process.env.NODE_ENV === 'production'
-    ? '/AI-Code-Committer' // El subdirectorio del repositorio
+    ? '/AI-Code-Committer/' // El subdirectorio del repositorio
     : '/', // La raíz para el desarrollo local
 });
