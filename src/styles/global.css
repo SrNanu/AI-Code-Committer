@@ -1,4 +1,6 @@
-/* --- Contenedores y Layout --- */
+/* ============================================= */
+/* --- CONTENEDORES Y LAYOUT --- */
+/* ============================================= */
 .tool-container {
   padding: 2rem;
   border: 1px solid var(--card-border);
@@ -6,58 +8,97 @@
   background-color: var(--card-bg);
 }
 
+/* Para layouts de dos columnas: formulario a la izquierda, resultados a la derecha */
+.tool-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Dos columnas de igual tamaño */
+  gap: 3rem;
+  margin-top: 2rem;
+}
+
+.form-container, .results-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ============================================= */
+/* --- FORMULARIOS (INPUTS, BOTONES) --- */
+/* ============================================= */
 .input-group {
-  margin-bottom: 1.5rem;
   display: flex;
   flex-direction: column;
 }
 
-/* --- Formularios --- */
 .input-group label {
   margin-bottom: 0.5rem;
   font-weight: 700;
   opacity: 0.8;
 }
 
-.input-field { /* Una clase genérica para inputs y textareas */
+/* Clase genérica para inputs y textareas */
+.input-field {
   width: 100%;
   padding: 0.8rem 1rem;
   font-size: 1.1rem;
   border-radius: 8px;
   border: 1px solid var(--card-border);
-  background-color: rgba(0,0,0,0.05);
+  background-color: rgba(0,0,0,0.1);
   color: var(--text-color);
 }
 
-.btn { /* Clase base para botones */
+/* Clase base para botones */
+.btn {
   padding: 0.8rem 1.5rem;
   border-radius: 8px;
   border: none;
   font-weight: 700;
   cursor: pointer;
   text-align: center;
+  font-size: 1rem;
 }
 
-.btn-primary { /* El botón de acción principal */
+/* El botón de acción principal */
+.btn-primary {
   background-color: rgb(var(--accent));
   color: white;
 }
 
-/* --- Resultados --- */
-.results-container {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  border-radius: 12px;
-  background-color: rgba(0,0,0,0.05);
+/* ============================================= */
+/* --- SECCIÓN DE RESULTADOS --- */
+/* ============================================= */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
 }
 
+.summary-item {
+  background-color: rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.summary-item h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+.summary-item p {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: rgb(var(--accent));
+}
+
+/* Para listas de resultados simples */
 .results-list {
   list-style: none;
   padding: 0;
   margin: 0;
-}
-
-.results-list li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
