@@ -1,0 +1,83 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Estilo de Vida Saludable',
+  description: `Como persona interesada en mejorar mi salud, quiero una herramienta que me permita ingresar mis hábitos diarios y recibir un puntaje de salud, para poder identificar áreas de mejora.`,
+  tags: ['salud', 'bienestar', 'hábitos', 'estilo de vida']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="sueño">Horas de sueño diarias:</label>
+          <input type="number" class="input-field" id="sueño" required />
+        </div>
+
+        <div class="input-group">
+          <label for="agua">Litros de agua consumidos:</label>
+          <input type="number" class="input-field" id="agua" required />
+        </div>
+
+        <div class="input-group">
+          <label for="frutas">Cantidad de frutas y verduras consumidas:</label>
+          <input type="number" class="input-field" id="frutas" required />
+        </div>
+
+        <button class="btn btn-primary" id="calcular-btn">Calcular Salud</button>
+      </div>
+
+      <div class="results-container">
+        <div class="summary">
+          <h4>Puntaje de Salud:</h4>
+          <p id="puntaje-salud">0</p>
+          <h4>Recomendación:</h4>
+          <p id="recomendacion"></p>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.getElementById('calcular-btn').addEventListener('click', function() {
+  const horasSueño = parseFloat(document.getElementById('sueño').value);
+  const litrosAgua = parseFloat(document.getElementById('agua').value);
+  const cantidadFrutas = parseFloat(document.getElementById('frutas').value);
+  
+  let puntaje = 0;
+  
+  // Evaluar el puntaje de salud
+  if (horasSueño >= 7) puntaje += 30;
+  if (litrosAgua >= 2) puntaje += 30;
+  if (cantidadFrutas >= 5) puntaje += 30;
+  
+  // Asignar el puntaje a la interfaz
+  document.getElementById('puntaje-salud').textContent = puntaje;
+  
+  // Mensaje de recomendación según el puntaje
+  let recomendacion = '';
+  if (puntaje === 90) {
+    recomendacion = '¡Excelente! Estás llevando un estilo de vida muy saludable.';
+  } else if (puntaje >= 60) {
+    recomendacion = 'Muy bien, sigue así pero intenta mejorar algunos hábitos.';
+  } else {
+    recomendacion = 'Es hora de trabajar en tus hábitos diarios para mejorar tu salud.';
+  }
+  
+  document.getElementById('recomendacion').textContent = recomendacion;
+});
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
