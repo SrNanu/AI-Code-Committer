@@ -1,0 +1,78 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Tiempo de Cocción',
+  description: `Como aficionado a la cocina, quiero una herramienta que me permita ingresar el tipo de alimento y su peso, para calcular el tiempo de cocción recomendado y asegurarme de que mis platos estén perfectamente cocidos.`,
+  tags: ['cocina', 'tiempo de cocción', 'recetas', 'alimentos']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="food-type">Tipo de Alimento:</label>
+          <select id="food-type" class="input-field">
+            <option value="carne">Carne</option>
+            <option value="pescado">Pescado</option>
+            <option value="verduras">Verduras</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="food-weight">Peso en gramos:</label>
+          <input type="number" id="food-weight" class="input-field" min="1" />
+        </div>
+        
+        <button id="calculate-btn" class="btn btn-primary">Calcular</button>
+      </div>
+      
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Tiempo de Cocción Recomendado:</h4>
+            <p id="cooking-time">0 minutos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const foodTypeSelect = document.getElementById('food-type');
+const foodWeightInput = document.getElementById('food-weight');
+const cookingTimeDisplay = document.getElementById('cooking-time');
+
+const calculateCookingTime = () => {
+  const foodType = foodTypeSelect.value;
+  const foodWeight = parseFloat(foodWeightInput.value);
+  let cookingTime = 0;
+
+  if (foodType === 'carne') {
+    cookingTime = foodWeight * 0.5; // 0.5 minutos por gramo
+  } else if (foodType === 'pescado') {
+    cookingTime = foodWeight * 0.3; // 0.3 minutos por gramo
+  } else if (foodType === 'verduras') {
+    cookingTime = foodWeight * 0.2; // 0.2 minutos por gramo
+  }
+
+  cookingTimeDisplay.textContent = `${cookingTime.toFixed(1)} minutos`;
+};
+
+foodWeightInput.addEventListener('input', calculateCookingTime);
+foodTypeSelect.addEventListener('change', calculateCookingTime);
+document.getElementById('calculate-btn').addEventListener('click', calculateCookingTime);
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
