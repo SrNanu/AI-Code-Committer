@@ -1,0 +1,61 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacios de Jardín',
+  description: `Como entusiasta de la jardinería, quiero una herramienta que me permita calcular el área de diferentes secciones de mi jardín, para poder planificar mejor la distribución de plantas y flores.`,
+  tags: ['["jardinería"', '"planificación"', '"espacios"', '"área"', '"interactividad"]']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="width">Ancho (m):</label>
+          <input type="number" id="width" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="length">Longitud (m):</label>
+          <input type="number" id="length" class="input-field" />
+        </div>
+        <button id="calculate-btn" class="btn btn-primary">Calcular Área</button>
+      </div>
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Área Calculada (m²):</h4>
+            <p id="resultado">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  const widthInput = document.getElementById('width');
+  const lengthInput = document.getElementById('length');
+  const resultDisplay = document.getElementById('resultado');
+
+  function calculateArea() {
+    const width = parseFloat(widthInput.value) || 0;
+    const length = parseFloat(lengthInput.value) || 0;
+    const area = width * length;
+    resultDisplay.textContent = area.toFixed(2); // Mostrar el área con 2 decimales
+  }
+
+  widthInput.addEventListener('input', calculateArea);
+  lengthInput.addEventListener('input', calculateArea);
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
