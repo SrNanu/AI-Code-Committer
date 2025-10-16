@@ -1,0 +1,96 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Niveles de Hidratación',
+  description: `Como persona consciente de mi salud, quiero una herramienta que me permita ingresar mi peso y nivel de actividad para calcular mi ingesta diaria recomendada de agua, para asegurarme de estar adecuadamente hidratado.`,
+  tags: ['["salud"', '"hidratación"', '"bienestar"', '"calculadora"]']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="weight">Peso (kg):</label>
+          <input type="number" id="weight" class="input-field" min="0" />
+        </div>
+        <div class="input-group">
+          <label for="activity-level">Nivel de Actividad:</label>
+          <select id="activity-level" class="input-field">
+            <option value="sedentario">Sedentario</option>
+            <option value="ligero">Ligero</option>
+            <option value="moderado">Moderado</option>
+            <option value="activo">Activo</option>
+          </select>
+        </div>
+        <button id="calculate-btn" class="btn btn-primary">Calcular</button>
+      </div>
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Ingesta Diaria Recomendada de Agua (litros):</h4>
+            <p id="water-intake">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  const weightInput = document.getElementById('weight');
+  const activityLevelSelect = document.getElementById('activity-level');
+  const calculateButton = document.getElementById('calculate-btn');
+  const waterIntakeDisplay = document.getElementById('water-intake');
+
+  function calculateWaterIntake(weight, activityLevel) {
+    let intakeFactor = 0;
+    
+    switch (activityLevel) {
+      case 'sedentario':
+        intakeFactor = 30; // 30 ml por kg
+        break;
+      case 'ligero':
+        intakeFactor = 35; // 35 ml por kg
+        break;
+      case 'moderado':
+        intakeFactor = 40; // 40 ml por kg
+        break;
+      case 'activo':
+        intakeFactor = 45; // 45 ml por kg
+        break;
+      default:
+        intakeFactor = 30; // Default value
+    }
+    
+    return (weight * intakeFactor) / 1000; // Convertir a litros
+  }
+
+  function updateWaterIntake() {
+    const weight = parseFloat(weightInput.value);
+    const activityLevel = activityLevelSelect.value;
+
+    if (!isNaN(weight) && weight > 0) {
+      const recommendedWaterIntake = calculateWaterIntake(weight, activityLevel);
+      waterIntakeDisplay.textContent = recommendedWaterIntake.toFixed(2);
+    } else {
+      waterIntakeDisplay.textContent = "0";
+    }
+  }
+
+  weightInput.addEventListener('input', updateWaterIntake);
+  activityLevelSelect.addEventListener('change', updateWaterIntake);
+  calculateButton.addEventListener('click', updateWaterIntake);
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
