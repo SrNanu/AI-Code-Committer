@@ -6,12 +6,34 @@
   border: 1px solid var(--card-border);
   border-radius: 16px;
   background-color: var(--card-bg);
+  animation: fade-in 0.8s ease-out;
 }
 
-/* Para layouts de dos columnas: formulario a la izquierda, resultados a la derecha */
+.tool-container h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(
+    135deg,
+    rgb(var(--accent)),
+    rgb(var(--accent-secondary))
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tool-container > p {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+/* Layout genérico de dos columnas */
 .tool-wrapper {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Dos columnas de igual tamaño */
+  grid-template-columns: 1fr 1fr;
   gap: 3rem;
   margin-top: 2rem;
 }
@@ -22,83 +44,159 @@
   gap: 1.5rem;
 }
 
+/* Back link para volver */
+.back-link {
+  display: inline-block;
+  margin-bottom: 2rem;
+  text-decoration: none;
+  font-weight: 700;
+  color: var(--text-color);
+  opacity: 0.8;
+  transition: all 0.3s ease;
+}
+
+.back-link:hover {
+  opacity: 1;
+  transform: translateX(-4px);
+}
+
 /* ============================================= */
 /* --- FORMULARIOS (INPUTS, BOTONES) --- */
 /* ============================================= */
 .input-group {
   display: flex;
   flex-direction: column;
+  gap: 0.5rem;
 }
 
 .input-group label {
-  margin-bottom: 0.5rem;
-  font-weight: 700;
-  opacity: 0.8;
-}
-
-/* Clase genérica para inputs y textareas */
-.input-field {
-  width: 100%;
-  padding: 0.8rem 1rem;
-  font-size: 1.1rem;
-  border-radius: 8px;
-  border: 1px solid var(--card-border);
-  background-color: rgba(0,0,0,0.1);
+  font-weight: 600;
   color: var(--text-color);
-}
-
-/* Clase base para botones */
-.btn {
-  padding: 0.8rem 1.5rem;
-  border-radius: 8px;
-  border: none;
-  font-weight: 700;
-  cursor: pointer;
-  text-align: center;
   font-size: 1rem;
 }
 
-/* El botón de acción principal */
+/* Inputs y textareas genéricos */
+.input-field,
+textarea {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.input-field:focus,
+textarea:focus {
+  outline: none;
+  border-color: rgba(var(--accent), 0.6);
+  box-shadow: 0 0 0 4px rgba(var(--accent), 0.1);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Botones */
+.btn {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
 .btn-primary {
-  background-color: rgb(var(--accent));
+  background: linear-gradient(
+    135deg,
+    rgb(var(--accent)),
+    rgb(var(--accent-secondary))
+  );
   color: white;
+  box-shadow: 0 4px 12px rgba(var(--accent), 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(var(--accent), 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 /* ============================================= */
 /* --- SECCIÓN DE RESULTADOS --- */
 /* ============================================= */
 .summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 1rem;
-}
-
-.summary-item {
-  background-color: rgba(0,0,0,0.1);
-  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: linear-gradient(
+    135deg,
+    rgba(var(--accent), 0.1),
+    rgba(var(--accent-secondary), 0.1)
+  );
+  border: 1px solid rgba(var(--accent), 0.2);
   border-radius: 12px;
 }
 
-.summary-item h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1rem;
-  opacity: 0.7;
-  font-weight: 600;
-}
-
-.summary-item p {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: rgb(var(--accent));
-}
-
-/* Para listas de resultados simples */
-.results-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.summary-item {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.summary-item h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summary-item p {
+  font-size: 2rem;
+  font-weight: 900;
+  color: rgb(var(--accent));
+}
+
+/* ============================================= */
+/* --- ANIMACIONES --- */
+/* ============================================= */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================= */
+/* --- RESPONSIVE --- */
+/* ============================================= */
+@media (max-width: 768px) {
+  .tool-wrapper {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .tool-container h1 {
+    font-size: 1.8rem;
+  }
+
+  .tool-container {
+    padding: 1.5rem;
+  }
+
+  .summary-item p {
+    font-size: 1.5rem;
+  }
 }
