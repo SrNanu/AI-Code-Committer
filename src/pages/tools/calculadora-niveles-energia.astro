@@ -1,0 +1,91 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Niveles de Energía Diaria',
+  description: `Como persona que busca mejorar mi bienestar, quiero una herramienta que me permita ingresar mis actividades diarias y sus niveles de energía asociados, para poder visualizar cómo se distribuye mi energía a lo largo del día.`,
+  tags: ['energía', 'bienestar', 'productividad', 'actividades']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="activity-name">Actividad:</label>
+          <input type="text" id="activity-name" class="input-field" placeholder="Ingrese el nombre de la actividad" required />
+        </div>
+        <div class="input-group">
+          <label for="energy-level">Nivel de Energía (1-10):</label>
+          <input type="number" id="energy-level" class="input-field" min="1" max="10" required />
+        </div>
+        <button class="btn btn-primary" id="add-activity">Agregar</button>
+        <button class="btn btn-primary" id="calculate-total">Calcular Total</button>
+      </div>
+      
+      <div class="results-container">
+        <h2>Actividades y Niveles de Energía</h2>
+        <ul id="activity-list" class="results-list"></ul>
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Total de Energía:</h4>
+            <p id="resultado">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  const activityNameInput = document.getElementById('activity-name');
+  const energyLevelInput = document.getElementById('energy-level');
+  const activityList = document.getElementById('activity-list');
+  const resultado = document.getElementById('resultado');
+
+  let activities = [];
+
+  document.getElementById('add-activity').addEventListener('click', function() {
+    const activityName = activityNameInput.value;
+    const energyLevel = parseInt(energyLevelInput.value);
+
+    if (activityName && energyLevel >= 1 && energyLevel <= 10) {
+      activities.push({ name: activityName, level: energyLevel });
+      updateActivityList();
+      activityNameInput.value = '';
+      energyLevelInput.value = '';
+    }
+  });
+
+  document.getElementById('calculate-total').addEventListener('click', function() {
+    const totalEnergy = activities.reduce((total, activity) => total + activity.level, 0);
+    resultado.innerText = totalEnergy;
+  });
+
+  function updateActivityList() {
+    activityList.innerHTML = '';
+    activities.forEach(activity => {
+      const listItem = document.createElement('li');
+      listItem.classList.add('task-list-item');
+      listItem.innerHTML = `
+        <span class="task-text">${activity.name} - Nivel: ${activity.level}</span>
+        <div class="task-actions">
+          <button class="btn btn-primary btn-sm complete-btn">Completar</button>
+          <button class="btn btn-primary btn-sm delete-btn">Eliminar</button>
+        </div>`;
+      activityList.appendChild(listItem);
+    });
+  }
+  
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
