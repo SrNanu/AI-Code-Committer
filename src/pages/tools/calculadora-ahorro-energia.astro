@@ -1,0 +1,84 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Ahorro de Energía',
+  description: `Como propietario de una casa, quiero calcular el ahorro de energía al cambiar a bombillas LED, para entender el impacto financiero y ambiental de mi decisión.`,
+  tags: ['energía', 'ahorro', 'sostenibilidad', 'hogar']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="current-bulbs">Número de bombillas actuales:</label>
+          <input type="number" id="current-bulbs" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="current-wattage">Consumo de energía de las bombillas actuales (en vatios):</label>
+          <input type="number" id="current-wattage" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="led-wattage">Consumo de energía de las bombillas LED (en vatios):</label>
+          <input type="number" id="led-wattage" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="cost-per-kwh">Costo por kilovatio-hora (kWh):</label>
+          <input type="number" id="cost-per-kwh" class="input-field" />
+        </div>
+        <button class="btn btn-primary" id="calculate-btn">Calcular</button>
+      </div>
+      <div class="results-container">
+        <div id="resultado" class="summary">
+          <h4>Ahorro Anual Estimado:</h4>
+          <p id="savings-amount">$0.00</p>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.addEventListener('DOMContentLoaded', () => {
+  const currentBulbsInput = document.getElementById('current-bulbs');
+  const currentWattageInput = document.getElementById('current-wattage');
+  const ledWattageInput = document.getElementById('led-wattage');
+  const costPerKwhInput = document.getElementById('cost-per-kwh');
+  const savingsAmountDisplay = document.getElementById('savings-amount');
+
+  const calculateSavings = () => {
+    const currentBulbs = parseFloat(currentBulbsInput.value) || 0;
+    const currentWattage = parseFloat(currentWattageInput.value) || 0;
+    const ledWattage = parseFloat(ledWattageInput.value) || 0;
+    const costPerKwh = parseFloat(costPerKwhInput.value) || 0;
+
+    const currentEnergyUsage = currentBulbs * currentWattage * 24 * 365 / 1000; // en kWh
+    const ledEnergyUsage = currentBulbs * ledWattage * 24 * 365 / 1000; // en kWh
+    const annualCostCurrent = currentEnergyUsage * costPerKwh; // Costo anual actual
+    const annualCostLed = ledEnergyUsage * costPerKwh; // Costo anual LED
+
+    const savings = annualCostCurrent - annualCostLed;
+    savingsAmountDisplay.textContent = `$${savings.toFixed(2)}`; // mostrará el ahorro formateado
+  };
+
+  // Escuchar cambios en los inputs para actualizar los resultados en tiempo real
+  [currentBulbsInput, currentWattageInput, ledWattageInput, costPerKwhInput].forEach(input => {
+    input.addEventListener('input', calculateSavings);
+  });
+
+  // También agregar evento click para el botón de calcular
+  document.getElementById('calculate-btn').addEventListener('click', calculateSavings);
+});
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
