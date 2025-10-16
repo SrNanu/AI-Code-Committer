@@ -1,0 +1,101 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacios de Almacenamiento en Armarios',
+  description: `Como organizador de espacios, quiero calcular cuántos objetos puedo almacenar en un armario dado sus dimensiones y el tamaño de los objetos, para optimizar el uso del espacio.`,
+  tags: ['almacenamiento', 'organización', 'armarios', 'espacio']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="height">Altura del armario (cm):</label>
+          <input type="number" id="height" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="width">Anchura del armario (cm):</label>
+          <input type="number" id="width" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="depth">Profundidad del armario (cm):</label>
+          <input type="number" id="depth" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="objectSize">Tamaño de los objetos (cm):</label>
+          <input type="number" id="objectSize" class="input-field" />
+        </div>
+        <button id="calculateBtn" class="btn btn-primary">Calcular</button>
+      </div>
+      
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Objetos que caben:</h4>
+            <p id="totalObjects">0</p>
+          </div>
+          <div class="summary-item">
+            <h4>Estado del espacio:</h4>
+            <p id="spaceStatus">Introduce las dimensiones y el tamaño de los objetos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.addEventListener("DOMContentLoaded", () => {
+  const calculateBtn = document.getElementById("calculateBtn");
+  const heightInput = document.getElementById("height");
+  const widthInput = document.getElementById("width");
+  const depthInput = document.getElementById("depth");
+  const objectSizeInput = document.getElementById("objectSize");
+  const totalObjectsDisplay = document.getElementById("totalObjects");
+  const spaceStatusDisplay = document.getElementById("spaceStatus");
+
+  const calculateStorage = () => {
+    const height = parseFloat(heightInput.value) || 0;
+    const width = parseFloat(widthInput.value) || 0;
+    const depth = parseFloat(depthInput.value) || 0;
+    const objectSize = parseFloat(objectSizeInput.value) || 0;
+
+    const totalVolume = height * width * depth;
+    const objectVolume = Math.pow(objectSize, 3);
+
+    let totalObjects = 0;
+    let spaceStatus = '';
+
+    if (objectVolume > 0) {
+      totalObjects = Math.floor(totalVolume / objectVolume);
+      spaceStatus = totalObjects > 0 ? 'Espacio suficiente!' : 'No cabe ningún objeto.';
+    } else {
+      spaceStatus = 'Introduce un tamaño de objeto válido.';
+    }
+
+    totalObjectsDisplay.innerText = totalObjects;
+    spaceStatusDisplay.innerText = spaceStatus;
+  };
+
+  calculateBtn.addEventListener("click", calculateStorage);
+  
+  // También llamamos a calculateStorage en cada input para la actualización en tiempo real
+  [heightInput, widthInput, depthInput, objectSizeInput].forEach(input => {
+    input.addEventListener("input", calculateStorage);
+  });
+});
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
