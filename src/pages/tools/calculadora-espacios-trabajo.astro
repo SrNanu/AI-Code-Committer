@@ -1,0 +1,83 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacios de Trabajo',
+  description: `Como trabajador desde casa, quiero una herramienta que me permita calcular el espacio necesario para mi escritorio y sillas, para optimizar mi área de trabajo y mejorar mi productividad.`,
+  tags: ['["espacio"', '"trabajo"', '"productividad"', '"ergonomía"]']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="width">Ancho del Escritorio (cm):</label>
+          <input type="number" id="width" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="depth">Profundidad del Escritorio (cm):</label>
+          <input type="number" id="depth" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="chairs">Número de Sillas:</label>
+          <input type="number" id="chairs" class="input-field" />
+        </div>
+        <button class="btn btn-primary" id="calculate-btn">Calcular</button>
+      </div>
+
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Área Total del Escritorio (m²):</h4>
+            <p id="desk-area">0</p>
+          </div>
+          <div class="summary-item">
+            <h4>Espacio Recomendado para Sillas (m²):</h4>
+            <p id="chair-space">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.addEventListener('DOMContentLoaded', () => {
+  const widthInput = document.getElementById('width');
+  const depthInput = document.getElementById('depth');
+  const chairsInput = document.getElementById('chairs');
+  const calculateBtn = document.getElementById('calculate-btn');
+  const deskAreaOutput = document.getElementById('desk-area');
+  const chairSpaceOutput = document.getElementById('chair-space');
+
+  const calculateSpace = () => {
+    const width = parseFloat(widthInput.value) || 0;
+    const depth = parseFloat(depthInput.value) || 0;
+    const chairs = parseFloat(chairsInput.value) || 0;
+
+    const deskArea = (width * depth) / 10000; // Convertir cm² a m²
+    const chairSpace = chairs * 1; // Espacio recomendado por silla en m² (por ejemplo 1 m²)
+
+    deskAreaOutput.textContent = deskArea.toFixed(2);
+    chairSpaceOutput.textContent = chairSpace.toFixed(2);
+  };
+
+  widthInput.addEventListener('input', calculateSpace);
+  depthInput.addEventListener('input', calculateSpace);
+  chairsInput.addEventListener('input', calculateSpace);
+  
+  calculateBtn.addEventListener('click', calculateSpace);
+});
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
