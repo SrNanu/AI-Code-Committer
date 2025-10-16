@@ -1,0 +1,78 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Planificador de Tareas Diarias',
+  description: `Como usuario que busca mejorar su productividad, quiero una herramienta que me permita agregar, marcar y eliminar tareas diarias, para organizar mejor mi tiempo y cumplir con mis objetivos.`,
+  tags: ['productividad', 'tareas', 'planificación', 'organización']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="tool-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="task-input">Añadir nueva tarea:</label>
+          <input type="text" id="task-input" class="input-field" placeholder="Escribe tu tarea aquí..."/>
+        </div>
+        <button id="add-task-btn" class="btn btn-primary">Agregar</button>
+      </div>
+      <div class="results-container">
+        <h2>Tareas Diarias</h2>
+        <ul id="task-list"></ul>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.getElementById('add-task-btn').addEventListener('click', function() {
+  const taskInput = document.getElementById('task-input');
+  const taskText = taskInput.value.trim();
+
+  if (taskText !== '') {
+    const taskList = document.getElementById('task-list');
+
+    // Crear el elemento de la tarea
+    const taskItem = document.createElement('li');
+    taskItem.textContent = taskText;
+
+    // Crear botón de completar
+    const completeButton = document.createElement('button');
+    completeButton.textContent = 'Completar';
+    completeButton.addEventListener('click', function() {
+      taskItem.style.textDecoration = 'line-through';
+    });
+
+    // Crear botón de eliminar
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'Eliminar';
+    deleteButton.addEventListener('click', function() {
+      taskList.removeChild(taskItem);
+    });
+
+    // Añadir botones al item de tarea
+    taskItem.appendChild(completeButton);
+    taskItem.appendChild(deleteButton);
+
+    // Añadir el item de tarea a la lista
+    taskList.appendChild(taskItem);
+
+    // Limpiar el campo de entrada
+    taskInput.value = '';
+  } else {
+    alert('Por favor, introduce una tarea.');
+  }
+});
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
