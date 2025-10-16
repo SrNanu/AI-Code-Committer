@@ -1,0 +1,75 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Porciones de Comida',
+  description: `Como anfitrión de una cena, quiero calcular las porciones de comida necesarias según el número de invitados y el tipo de plato, para asegurarme de que todos queden satisfechos.`,
+  tags: ['cocina', 'porciones', 'invitados', 'planificación']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="num-invitados">Número de Invitados:</label>
+          <input type="number" id="num-invitados" class="input-field" min="1" placeholder="Número de invitados">
+        </div>
+        <div class="input-group">
+          <label for="tipo-plato">Tipo de Plato:</label>
+          <select id="tipo-plato" class="input-field">
+            <option value="entrada">Entrada</option>
+            <option value="plato-principal">Plato Principal</option>
+            <option value="postre">Postre</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="porciones-por-plato">Porciones por Plato:</label>
+          <input type="number" id="porciones-por-plato" class="input-field" min="1" placeholder="Porciones por plato">
+        </div>
+        <button id="calcular-btn" class="btn btn-primary">Calcular</button>
+      </div>
+      <div class="results-container">
+        <h2>Resultados:</h2>
+        <div id="resultado" class="summary"></div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const numInvitadosInput = document.getElementById("num-invitados");
+  const tipoPlatoSelect = document.getElementById("tipo-plato");
+  const porcionesPorPlatoInput = document.getElementById("porciones-por-plato");
+  const resultadoDiv = document.getElementById("resultado");
+  
+  function calcularPorciones() {
+    const numInvitados = parseInt(numInvitadosInput.value) || 0;
+    const porcionesPorPlato = parseInt(porcionesPorPlatoInput.value) || 1;
+    const totalPorciones = numInvitados * porcionesPorPlato;
+    
+    if (numInvitados > 0 && porcionesPorPlato > 0) {
+      resultadoDiv.innerHTML = `<div class="summary-item"><h4>Total de Porciones Necesarias:</h4><p>${totalPorciones}</p></div>`;
+    } else {
+      resultadoDiv.innerHTML = '';
+    }
+  }
+
+  numInvitadosInput.addEventListener("input", calcularPorciones);
+  porcionesPorPlatoInput.addEventListener("input", calcularPorciones);
+  tipoPlatoSelect.addEventListener("change", calcularPorciones);
+  
+  // Añadir evento al botón para calcular también
+  document.getElementById("calcular-btn").addEventListener("click", calcularPorciones);
+});
+</script>
