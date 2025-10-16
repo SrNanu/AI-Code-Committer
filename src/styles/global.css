@@ -165,6 +165,44 @@ textarea:focus {
   color: rgb(var(--accent));
 }
 
+
+/* ============================================= */
+/* --- COMPONENTES DE LISTA DE TAREAS --- */
+/* ============================================= */
+.task-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.task-text {
+  flex-grow: 1;
+  transition: all 0.3s ease;
+}
+
+.task-text.completed {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.task-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+/* Botones más pequeños para acciones en la lista */
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
 /* ============================================= */
 /* --- ANIMACIONES --- */
 /* ============================================= */
