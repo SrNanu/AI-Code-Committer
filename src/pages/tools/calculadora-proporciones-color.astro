@@ -1,0 +1,91 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Proporciones de Color',
+  description: `Como diseñador gráfico, quiero una herramienta que me permita ingresar valores de colores en formato RGB y obtener la proporción de cada color en un diseño, para asegurarme de que mi paleta sea equilibrada.`,
+  tags: ['diseño', 'color', 'proporciones', 'gráfico']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="red-input">Rojo</label>
+          <input type="number" id="red-input" class="input-field" min="0" max="255" placeholder="0-255" />
+        </div>
+        <div class="input-group">
+          <label for="green-input">Verde</label>
+          <input type="number" id="green-input" class="input-field" min="0" max="255" placeholder="0-255" />
+        </div>
+        <div class="input-group">
+          <label for="blue-input">Azul</label>
+          <input type="number" id="blue-input" class="input-field" min="0" max="255" placeholder="0-255" />
+        </div>
+        <button id="calculate-btn" class="btn btn-primary">Calcular</button>
+      </div>
+
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Proporción de Rojo</h4>
+            <p id="red-percentage">0%</p>
+          </div>
+          <div class="summary-item">
+            <h4>Proporción de Verde</h4>
+            <p id="green-percentage">0%</p>
+          </div>
+          <div class="summary-item">
+            <h4>Proporción de Azul</h4>
+            <p id="blue-percentage">0%</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const redInput = document.getElementById('red-input');
+const greenInput = document.getElementById('green-input');
+const blueInput = document.getElementById('blue-input');
+const redPercentage = document.getElementById('red-percentage');
+const greenPercentage = document.getElementById('green-percentage');
+const bluePercentage = document.getElementById('blue-percentage');
+
+function calculateProportions() {
+  const red = parseInt(redInput.value) || 0;
+  const green = parseInt(greenInput.value) || 0;
+  const blue = parseInt(blueInput.value) || 0;
+
+  const total = red + green + blue;
+
+  if (total > 0) {
+    redPercentage.textContent = ((red / total) * 100).toFixed(2) + '%';
+    greenPercentage.textContent = ((green / total) * 100).toFixed(2) + '%';
+    bluePercentage.textContent = ((blue / total) * 100).toFixed(2) + '%';
+  } else {
+    redPercentage.textContent = '0%';
+    greenPercentage.textContent = '0%';
+    bluePercentage.textContent = '0%';
+  }
+}
+
+// Evento de entrada para calcular en tiempo real
+redInput.addEventListener('input', calculateProportions);
+greenInput.addEventListener('input', calculateProportions);
+blueInput.addEventListener('input', calculateProportions);
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
