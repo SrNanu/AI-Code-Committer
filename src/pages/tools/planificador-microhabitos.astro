@@ -1,0 +1,74 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Planificador de Microhábitos',
+  description: `Como persona interesada en el desarrollo personal, quiero una herramienta que me ayude a establecer y realizar un seguimiento de microhábitos diarios, para poder construir rutinas sostenibles que mejoren mi bienestar general.`,
+  tags: ['microhábitos', 'productividad', 'bienestar', 'desarrollo personal', 'seguimiento']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="tool-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="habit-name">Nombre del Microhábito:</label>
+          <input type="text" id="habit-name" class="input-field" placeholder="Ej. Beber agua" />
+        </div>
+        <div class="input-group">
+          <label for="habit-frequency">Frecuencia (días a la semana):</label>
+          <input type="number" id="habit-frequency" class="input-field" min="1" max="7" placeholder="1 a 7" />
+        </div>
+        <button class="btn btn-primary" id="add-habit">Agregar Microhábito</button>
+      </div>
+      <div class="results-container">
+        <h2>Microhábitos Seguimiento</h2>
+        <div class="summary" id="summary">
+          <!-- Los resultados se agregarán aquí dinámicamente -->
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  document.getElementById('add-habit').addEventListener('click', function() {
+    const habitName = document.getElementById('habit-name').value;
+    const habitFrequency = document.getElementById('habit-frequency').value;
+
+    if(habitName && habitFrequency) {
+      const summary = document.getElementById('summary');
+
+      // Crear un nuevo elemento de resumen
+      const summaryItem = document.createElement('div');
+      summaryItem.classList.add('summary-item');
+      
+      const title = document.createElement('h4');
+      title.textContent = habitName;
+
+      const value = document.createElement('p');
+      value.textContent = `Frecuencia: ${habitFrequency} vez/veces a la semana`;
+
+      summaryItem.appendChild(title);
+      summaryItem.appendChild(value);
+      summary.appendChild(summaryItem);
+      
+      // Limpiar los campos del formulario
+      document.getElementById('habit-name').value = '';
+      document.getElementById('habit-frequency').value = '';
+    } else {
+      alert('Por favor, completa todos los campos.');
+    }
+  });
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
