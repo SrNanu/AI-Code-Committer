@@ -1,0 +1,101 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacios de Almacenamiento en Mochilas',
+  description: `Como estudiante, quiero calcular cuántos libros y útiles puedo llevar en mi mochila, para optimizar el espacio y no sobrecargarme.`,
+  tags: ['mochila', 'almacenamiento', 'estudiantes', 'organización']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="capacity">Capacidad total de la mochila (litros):</label>
+          <input type="number" id="capacity" class="input-field" placeholder="Ej: 30" />
+        </div>
+        
+        <div class="input-group">
+          <label for="book-volume">Volumen de cada libro (litros):</label>
+          <input type="number" id="book-volume" class="input-field" placeholder="Ej: 1.5" />
+        </div>
+        
+        <div class="input-group">
+          <label for="utility-volume">Volumen de cada útil (litros):</label>
+          <input type="number" id="utility-volume" class="input-field" placeholder="Ej: 2" />
+        </div>
+        
+        <button class="btn btn-primary" id="calculate-btn">Calcular</button>
+      </div>
+      
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Total Libros:</h4>
+            <p id="total-books">0</p>
+          </div>
+          <div class="summary-item">
+            <h4>Total Útiles:</h4>
+            <p id="total-utilities">0</p>
+          </div>
+          <div class="summary-item">
+            <h4>Estado:</h4>
+            <p id="status">Capacidad disponible.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const capacityInput = document.getElementById('capacity');
+const bookVolumeInput = document.getElementById('book-volume');
+const utilityVolumeInput = document.getElementById('utility-volume');
+const calculateBtn = document.getElementById('calculate-btn');
+const totalBooksDisplay = document.getElementById('total-books');
+const totalUtilitiesDisplay = document.getElementById('total-utilities');
+const statusDisplay = document.getElementById('status');
+
+calculateBtn.addEventListener('click', () => {
+  const capacity = parseFloat(capacityInput.value);
+  const bookVolume = parseFloat(bookVolumeInput.value);
+  const utilityVolume = parseFloat(utilityVolumeInput.value);
+  
+  if (isNaN(capacity) || isNaN(bookVolume) || isNaN(utilityVolume) || capacity <= 0 || bookVolume <= 0 || utilityVolume <= 0) {
+    statusDisplay.innerText = "Por favor, ingresa valores válidos.";
+    totalBooksDisplay.innerText = '0';
+    totalUtilitiesDisplay.innerText = '0';
+    return;
+  }
+
+  const totalBooks = Math.floor(capacity / bookVolume);
+  const totalUtilities = Math.floor(capacity / utilityVolume);
+  
+  const booksSpace = totalBooks * bookVolume;
+  const utilitiesSpace = totalUtilities * utilityVolume;
+  
+  const spaceUsed = booksSpace + utilitiesSpace;
+
+  totalBooksDisplay.innerText = totalBooks;
+  totalUtilitiesDisplay.innerText = totalUtilities;
+
+  if (spaceUsed > capacity) {
+    statusDisplay.innerText = "¡Estás sobrepasando la capacidad!";
+  } else {
+    statusDisplay.innerText = "Capacidad disponible.";
+  }
+});
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
