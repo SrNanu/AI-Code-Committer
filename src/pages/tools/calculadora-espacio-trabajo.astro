@@ -1,0 +1,69 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacio de Trabajo Personalizado',
+  description: `Como trabajador desde casa, quiero calcular el espacio óptimo para mi área de trabajo, para asegurarme de que tengo suficiente espacio para ser productivo y cómodo.`,
+  tags: ['["espacio de trabajo"', '"productividad"', '"ergonomía"', '"casa"]']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="room-size">Tamaño de la habitación (m²):</label>
+          <input id="room-size" type="number" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="desk-size">Tamaño del escritorio (m²):</label>
+          <input id="desk-size" type="number" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="chair-size">Tamaño de la silla (m²):</label>
+          <input id="chair-size" type="number" class="input-field" />
+        </div>
+        <button id="calculate-btn" class="btn btn-primary">Calcular Espacio</button>
+      </div>
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Espacio Total Disponible:</h4>
+            <p id="available-space">0 m²</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  const roomSizeInput = document.getElementById('room-size');
+  const deskSizeInput = document.getElementById('desk-size');
+  const chairSizeInput = document.getElementById('chair-size');
+  const availableSpaceDisplay = document.getElementById('available-space');
+
+  const calculateSpace = () => {
+    const roomSize = parseFloat(roomSizeInput.value) || 0;
+    const deskSize = parseFloat(deskSizeInput.value) || 0;
+    const chairSize = parseFloat(chairSizeInput.value) || 0;
+
+    const availableSpace = roomSize - (deskSize + chairSize);
+    availableSpaceDisplay.textContent = `${availableSpace > 0 ? availableSpace : 0} m²`;
+  };
+
+  roomSizeInput.addEventListener('input', calculateSpace);
+  deskSizeInput.addEventListener('input', calculateSpace);
+  chairSizeInput.addEventListener('input', calculateSpace);
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
