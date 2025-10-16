@@ -1,0 +1,100 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Planificador de Rutinas de Estudio Personalizado',
+  description: `Como estudiante, quiero una herramienta que me ayude a crear y personalizar una rutina de estudio diaria basada en mis materias y objetivos, para maximizar mi productividad y mantenerme organizado.`,
+  tags: ['["estudio"', '"rutinas"', '"productividad"', '"organización"', '"personalización"]']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper"> 
+      <div class="form-container">
+        <div class="input-group">
+          <label for="subject">Materia:</label>
+          <input type="text" id="subject" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="daily-goal">Objetivo Diario (horas):</label>
+          <input type="number" id="daily-goal" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="days">Selecciona días:</label>
+          <select id="days" class="input-field">
+            <option value="monday">Lunes</option>
+            <option value="tuesday">Martes</option>
+            <option value="wednesday">Miércoles</option>
+            <option value="thursday">Jueves</option>
+            <option value="friday">Viernes</option>
+            <option value="saturday">Sábado</option>
+            <option value="sunday">Domingo</option>
+          </select>
+        </div>
+        <button id="add-subject" class="btn btn-primary">Añadir Materia</button>
+      </div>
+
+      <div class="results-container">
+        <div id="calendar" class="summary"></div>
+        <button id="export-pdf" class="btn btn-primary">Guardar y Exportar PDF</button>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.getElementById('add-subject').addEventListener('click', function() {
+  const subjectInput = document.getElementById('subject');
+  const goalInput = document.getElementById('daily-goal');
+  const daySelect = document.getElementById('days');
+  
+  const subject = subjectInput.value;
+  const goal = goalInput.value;
+  const day = daySelect.value;
+  
+  // Validar entradas
+  if (!subject || !goal || !day) {
+    alert('Por favor completa todos los campos.');
+    return;
+  }
+  
+  // Crear un nuevo bloque de tiempo en el calendario
+  const calendar = document.getElementById('calendar');
+  const summaryItem = document.createElement('div');
+  summaryItem.className = 'summary-item';
+  summaryItem.innerHTML = `<h4>${subject} (${day})</h4><p>${goal} horas</p>`;
+  
+  // Agregar interacción para arrastrar y soltar (puedes agregar librerías como interact.js para esto)
+  summaryItem.draggable = true;
+  summaryItem.addEventListener('dragstart', (e) => {
+    e.dataTransfer.setData('text/plain', subject);
+  });
+
+  calendar.appendChild(summaryItem);
+  subjectInput.value = '';
+  goalInput.value = '';
+  
+  // Mostrar resultados en tiempo real
+  updateCalendar();
+});
+
+function updateCalendar() {
+  // Lógica para actualizar el calendario en tiempo real 
+}
+
+document.getElementById('export-pdf').addEventListener('click', function() {
+  // Lógica para exportar la rutina a PDF
+});
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
