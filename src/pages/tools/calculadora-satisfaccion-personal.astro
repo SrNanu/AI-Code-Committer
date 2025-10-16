@@ -1,0 +1,73 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Satisfacción Personal',
+  description: `Como persona que busca mejorar su bienestar, quiero una herramienta que me permita evaluar diferentes aspectos de mi vida y ver un puntaje de satisfacción, para identificar áreas en las que puedo mejorar.`,
+  tags: ['bienestar', 'satisfacción', 'autoevaluación', 'productividad']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="health">Salud:</label>
+          <input type="range" id="health" class="input-field" min="1" max="10" value="5" />
+        </div>
+        <div class="input-group">
+          <label for="work">Trabajo:</label>
+          <input type="range" id="work" class="input-field" min="1" max="10" value="5" />
+        </div>
+        <div class="input-group">
+          <label for="relationships">Relaciones:</label>
+          <input type="range" id="relationships" class="input-field" min="1" max="10" value="5" />
+        </div>
+        <div class="input-group">
+          <label for="leisure">Ocio:</label>
+          <input type="range" id="leisure" class="input-field" min="1" max="10" value="5" />
+        </div>
+        <button class="btn btn-primary" id="calculate-btn">Calcular Satisfacción</button>
+      </div>
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Puntaje Promedio de Satisfacción</h4>
+            <p id="resultado">5</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const inputs = document.querySelectorAll('input[type="range"]');
+const resultado = document.getElementById('resultado');
+
+const calculateSatisfaction = () => {
+  let total = 0;
+  inputs.forEach(input => {
+    total += parseInt(input.value);
+  });
+  const average = (total / inputs.length).toFixed(1);
+  resultado.textContent = average;
+};
+
+// Actualiza el puntaje en tiempo real al mover los sliders
+inputs.forEach(input => {
+  input.addEventListener('input', calculateSatisfaction);
+});
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
