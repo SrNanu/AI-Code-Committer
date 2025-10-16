@@ -1,0 +1,70 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Generador de Nombres de Usuario',
+  description: `Como usuario nuevo en una plataforma, quiero una herramienta que genere nombres de usuario creativos y únicos. Debe tener un campo para introducir una palabra clave (ej: "gamer") y un botón para generar una lista de 5 sugerencias combinando la palabra clave con adjetivos o números aleatorios.`,
+  tags: ['generador', 'usuario', 'herramienta', 'creatividad']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="tool-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="keyword">Introduce una palabra clave:</label>
+          <input type="text" id="keyword" class="input-field" placeholder="ej: gamer" />
+        </div>
+        <button class="btn btn-primary" id="generate-btn">Generar Nombres de Usuario</button>
+      </div>
+      <div class="results-container">
+        <div class="summary" id="results">
+          <!-- Los resultados se mostrarán aquí -->
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.getElementById('generate-btn').addEventListener('click', function() {
+  const keyword = document.getElementById('keyword').value;
+  const resultsContainer = document.getElementById('results');
+  resultsContainer.innerHTML = ''; // Limpiar resultados anteriores
+
+  if (keyword) {
+    const suggestions = generateUsernameSuggestions(keyword);
+    suggestions.forEach(suggestion => {
+      const summaryItem = document.createElement('div');
+      summaryItem.className = 'summary-item';
+      summaryItem.innerHTML = `<h4>${suggestion}</h4><p>Nombre de usuario sugerido</p>`;
+      resultsContainer.appendChild(summaryItem);
+    });
+  } else {
+    resultsContainer.innerHTML = '<div class="summary-item"><h4>Error</h4><p>Por favor, introduce una palabra clave.</p></div>';
+  }
+});
+
+function generateUsernameSuggestions(keyword) {
+  const adjectives = ['Cool', 'Epic', 'Crazy', 'Happy', 'Stealthy', 'Smart', 'Funky', 'Techy'];
+  const numbers = Math.floor(Math.random() * 99999) + 1; // Genera un número aleatorio
+  const suggestions = [];
+
+  for (let i = 0; i < 5; i++) {
+    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    suggestions.push(`${randomAdjective}${keyword}${numbers}`);
+  }
+  return suggestions;
+}
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
