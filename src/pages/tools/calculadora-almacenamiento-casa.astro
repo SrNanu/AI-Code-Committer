@@ -1,0 +1,64 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacios de Almacenamiento en Casa',
+  description: `Como propietario de una vivienda, quiero calcular el espacio de almacenamiento disponible en diferentes áreas de mi casa, para optimizar la organización y el uso del espacio.`,
+  tags: ['almacenamiento', 'organización', 'hogar', 'espacio']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="area">Área de la habitación (m²):</label>
+          <input type="number" id="area" class="input-field" placeholder="Ingresa el área">
+        </div>
+        <div class="input-group">
+          <label for="height">Altura del espacio (m):</label>
+          <input type="number" id="height" class="input-field" placeholder="Ingresa la altura">
+        </div>
+        <button class="btn btn-primary" id="calculate-btn">Calcular</button>
+      </div>
+      
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Volumen Total</h4>
+            <p id="volume-result">0 m³</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const areaInput = document.getElementById('area');
+const heightInput = document.getElementById('height');
+const volumeResult = document.getElementById('volume-result');
+
+const calculateVolume = () => {
+  const area = parseFloat(areaInput.value) || 0;
+  const height = parseFloat(heightInput.value) || 0;
+  const volume = area * height;
+  
+  volumeResult.textContent = `${volume.toFixed(2)} m³`;
+};
+
+// Añadir eventos de entrada para calcular en tiempo real
+areaInput.addEventListener('input', calculateVolume);
+heightInput.addEventListener('input', calculateVolume);
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
