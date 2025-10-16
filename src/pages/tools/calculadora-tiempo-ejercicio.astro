@@ -1,0 +1,99 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Tiempo de Ejercicio',
+  description: `Como entusiasta del fitness, quiero una herramienta que me permita ingresar diferentes tipos de ejercicios y sus duraciones, para calcular el total de tiempo de ejercicio realizado en un día.`,
+  tags: ['ejercicio', 'fitness', 'tiempo', 'salud']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="exercise-name">Nombre del Ejercicio:</label>
+          <input type="text" id="exercise-name" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="exercise-duration">Duración (minutos):</label>
+          <input type="number" id="exercise-duration" class="input-field" />
+        </div>
+        <button id="add-exercise" class="btn btn-primary">Agregar</button>
+      </div>
+      
+      <div class="results-container">
+        <h2>Ejercicios Agregados</h2>
+        <ul id="exercise-list" class="results-list"></ul>
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Total de Tiempo de Ejercicio:</h4>
+            <p id="total-duration">0 minutos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  document.getElementById('add-exercise').addEventListener('click', function() {
+    const exerciseName = document.getElementById('exercise-name').value;
+    const exerciseDuration = parseInt(document.getElementById('exercise-duration').value);
+
+    if (exerciseName && !isNaN(exerciseDuration)) {
+      const exerciseList = document.getElementById('exercise-list');
+      const totalDurationElement = document.getElementById('total-duration');
+      
+      // Crear el nuevo item de la lista
+      const listItem = document.createElement('li');
+      listItem.className = 'task-list-item';
+      listItem.innerHTML = `
+        <span class="task-text">${exerciseName} - ${exerciseDuration} minutos</span>
+        <div class="task-actions">
+          <button class="btn btn-primary btn-sm complete-btn">Completar</button>
+          <button class="btn btn-primary btn-sm delete-btn">Eliminar</button>
+        </div>
+      `;
+      
+      // Agregar el nuevo item a la lista
+      exerciseList.appendChild(listItem);
+      
+      // Actualizar el total de duración
+      let currentTotal = parseInt(totalDurationElement.innerText.split(' ')[0]);
+      currentTotal += exerciseDuration;
+      totalDurationElement.innerText = `${currentTotal} minutos`;
+      
+      // Limpiar los campos de entrada
+      document.getElementById('exercise-name').value = '';
+      document.getElementById('exercise-duration').value = '';
+    }
+  });
+
+  // Manejar la eliminación de ejercicios
+  document.getElementById('exercise-list').addEventListener('click', function(e) {
+    if (e.target.classList.contains('delete-btn')) {
+      const listItem = e.target.closest('.task-list-item');
+      const durationText = listItem.querySelector('.task-text').innerText;
+      const duration = parseInt(durationText.split('- ')[1].split(' ')[0]);
+      
+      let totalDurationElement = document.getElementById('total-duration');
+      let currentTotal = parseInt(totalDurationElement.innerText.split(' ')[0]);
+      currentTotal -= duration;
+      totalDurationElement.innerText = `${currentTotal} minutos`;
+      
+      listItem.remove();
+    }
+  });
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
