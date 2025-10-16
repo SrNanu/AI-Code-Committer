@@ -1,0 +1,68 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacios de Trabajo en Equipo',
+  description: `Como líder de equipo, quiero una herramienta que me permita calcular el espacio necesario para cada miembro del equipo en una oficina, para asegurar que todos tengan un lugar adecuado y cómodo para trabajar.`,
+  tags: ['oficina', 'espacio', 'trabajo en equipo', 'productividad']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="num-members">Número de miembros del equipo:</label>
+          <input type="number" id="num-members" class="input-field" min="1" />
+        </div>
+        <div class="input-group">
+          <label for="total-space">Espacio total disponible (m²):</label>
+          <input type="number" id="total-space" class="input-field" min="1" />
+        </div>
+        <button id="calculate-btn" class="btn btn-primary">Calcular</button>
+      </div>
+
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Espacio por persona (m²):</h4>
+            <p id="resultado">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const numMembersInput = document.getElementById('num-members');
+const totalSpaceInput = document.getElementById('total-space');
+const resultadoElement = document.getElementById('resultado');
+const calculateBtn = document.getElementById('calculate-btn');
+
+const calculateSpace = () => {
+  const numMembers = parseInt(numMembersInput.value) || 0; // Default to 0 if NaN
+  const totalSpace = parseFloat(totalSpaceInput.value) || 0; // Default to 0 if NaN
+  const spacePerPerson = numMembers > 0 ? (totalSpace / numMembers).toFixed(2) : 0;
+
+  resultadoElement.textContent = spacePerPerson;
+};
+
+// Event listener for the button
+calculateBtn.addEventListener('click', calculateSpace);
+
+// Event listeners for real-time calculation
+numMembersInput.addEventListener('input', calculateSpace);
+totalSpaceInput.addEventListener('input', calculateSpace);
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
