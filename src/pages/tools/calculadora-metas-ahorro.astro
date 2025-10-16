@@ -1,0 +1,68 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Metas de Ahorro',
+  description: `Como ahorrador, quiero establecer una meta de ahorro y calcular cuánto debo ahorrar mensualmente para alcanzarla, para poder planificar mis finanzas de manera efectiva.`,
+  tags: ['ahorro', 'finanzas', 'planificación', 'metas']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="goal">Meta de Ahorro Total ($):</label>
+          <input type="number" id="goal" class="input-field" placeholder="Ingrese su meta" />
+        </div>
+        <div class="input-group">
+          <label for="months">Número de Meses:</label>
+          <input type="number" id="months" class="input-field" placeholder="Ingrese el número de meses" />
+        </div>
+        <button id="calculate-button" class="btn btn-primary">Calcular</button>
+      </div>
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Ahorro Mensual Necesario:</h4>
+            <p id="monthly-savings">$0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  const goalInput = document.getElementById('goal');
+  const monthsInput = document.getElementById('months');
+  const calculateButton = document.getElementById('calculate-button');
+  const monthlySavingsDisplay = document.getElementById('monthly-savings');
+
+  function calculateMonthlySavings() {
+    const goal = parseFloat(goalInput.value) || 0;
+    const months = parseInt(monthsInput.value) || 0;
+    
+    if (months > 0) {
+      const monthlySavings = (goal / months).toFixed(2);
+      monthlySavingsDisplay.textContent = `$${monthlySavings}`;
+    } else {
+      monthlySavingsDisplay.textContent = `$0`;
+    }
+  }
+
+  goalInput.addEventListener('input', calculateMonthlySavings);
+  monthsInput.addEventListener('input', calculateMonthlySavings);
+  calculateButton.addEventListener('click', calculateMonthlySavings);
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
