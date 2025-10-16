@@ -1,0 +1,93 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Conversor de Unidades de Longitud',
+  description: `Como estudiante, quiero convertir fácilmente entre diferentes unidades de longitud, para poder entender mejor las medidas en mis tareas y proyectos.`,
+  tags: ['conversión', 'unidades', 'longitud', 'educación']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="value">Valor a convertir:</label>
+          <input type="number" id="value" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="from-unit">Unidad de origen:</label>
+          <select id="from-unit" class="input-field">
+            <option value="meters">Metros</option>
+            <option value="kilometers">Kilómetros</option>
+            <option value="miles">Millas</option>
+            <option value="feet">Pies</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="to-unit">Unidad de destino:</label>
+          <select id="to-unit" class="input-field">
+            <option value="meters">Metros</option>
+            <option value="kilometers">Kilómetros</option>
+            <option value="miles">Millas</option>
+            <option value="feet">Pies</option>
+          </select>
+        </div>
+        <button id="convert-btn" class="btn btn-primary">Convertir</button>
+      </div>
+      <div class="results-container">
+        <div class="summary">
+          <h2>Resultado:</h2>
+          <div id="resultado" class="summary-item">
+            <h4>Valor convertido:</h4>
+            <p id="converted-value">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  const valueInput = document.getElementById('value');
+  const fromUnitSelect = document.getElementById('from-unit');
+  const toUnitSelect = document.getElementById('to-unit');
+  const convertedValueDisplay = document.getElementById('converted-value');
+
+  const conversionRates = {
+    meters: 1,
+    kilometers: 0.001,
+    miles: 0.000621371,
+    feet: 3.28084
+  };
+
+  function convertLength(value, fromUnit, toUnit) {
+    if (!value) return 0;
+    const valueInMeters = value / conversionRates[fromUnit];
+    const convertedValue = valueInMeters * conversionRates[toUnit];
+    return convertedValue;
+  }
+
+  function updateResult() {
+    const value = parseFloat(valueInput.value);
+    const fromUnit = fromUnitSelect.value;
+    const toUnit = toUnitSelect.value;
+    const convertedValue = convertLength(value, fromUnit, toUnit);
+    convertedValueDisplay.textContent = convertedValue.toFixed(4);
+  }
+
+  valueInput.addEventListener('input', updateResult);
+  fromUnitSelect.addEventListener('change', updateResult);
+  toUnitSelect.addEventListener('change', updateResult);
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
