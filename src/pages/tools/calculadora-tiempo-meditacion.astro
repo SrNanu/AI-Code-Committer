@@ -1,0 +1,76 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Tiempo de Meditación',
+  description: `Como persona interesada en el bienestar, quiero una herramienta que me permita ingresar la duración de mi meditación y el número de sesiones por semana, para calcular el tiempo total de meditación mensual y mejorar mi práctica.`,
+  tags: ['meditación', 'bienestar', 'tiempo', 'salud', 'autoayuda']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="session-duration">Duración de cada sesión (minutos):</label>
+          <input type="number" id="session-duration" class="input-field" min="0" value="0" />
+        </div>
+        
+        <div class="input-group">
+          <label for="sessions-per-week">Número de sesiones por semana:</label>
+          <input type="number" id="sessions-per-week" class="input-field" min="0" value="0" />
+        </div>
+        
+        <button id="calculate-btn" class="btn btn-primary">Calcular</button>
+      </div>
+      
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Total de Meditación Mensual (Minutos)</h4>
+            <p id="total-minutes">0</p>
+          </div>
+          <div class="summary-item">
+            <h4>Total de Meditación Mensual (Horas)</h4>
+            <p id="total-hours">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.addEventListener('DOMContentLoaded', () => {
+  const durationInput = document.getElementById('session-duration');
+  const sessionsInput = document.getElementById('sessions-per-week');
+  const totalMinutesDisplay = document.getElementById('total-minutes');
+  const totalHoursDisplay = document.getElementById('total-hours');
+  
+  const calculateTotalMeditation = () => {
+    const sessionDuration = parseFloat(durationInput.value) || 0;
+    const sessionsPerWeek = parseFloat(sessionsInput.value) || 0;
+    
+    const totalMinutes = sessionDuration * sessionsPerWeek * 4;
+    const totalHours = totalMinutes / 60;
+    
+    totalMinutesDisplay.textContent = totalMinutes;
+    totalHoursDisplay.textContent = (totalHours).toFixed(2); // Mostrar horas con dos decimales
+  };
+  
+  durationInput.addEventListener('input', calculateTotalMeditation);
+  sessionsInput.addEventListener('input', calculateTotalMeditation);
+});
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
