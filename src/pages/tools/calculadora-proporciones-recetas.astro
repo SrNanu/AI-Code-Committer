@@ -1,0 +1,82 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Proporciones de Recetas',
+  description: `Como cocinero aficionado, quiero una herramienta que me permita ajustar las proporciones de los ingredientes de una receta, para poder cocinar la cantidad exacta que necesito.`,
+  tags: ['cocina', 'recetas', 'proporciones', 'ingredientes']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="servings">Número de porciones deseadas:</label>
+          <input id="servings" type="number" class="input-field" value="1" min="1" />
+        </div>
+        <div class="input-group">
+          <label for="ingredients">Ingredientes (ingresar cantidad y nombre, uno por línea):</label>
+          <textarea id="ingredients" class="input-field" rows="5"></textarea>
+        </div>
+        <button id="calculate-btn" class="btn btn-primary">Calcular</button>
+      </div>
+      
+      <div class="results-container">
+        <h2>Resultados</h2>
+        <div class="summary" id="results-summary"></div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  document.addEventListener('DOMContentLoaded', () => {
+    const servingsInput = document.getElementById('servings');
+    const ingredientsInput = document.getElementById('ingredients');
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resultsSummary = document.getElementById('results-summary');
+
+    function calculateIngredients() {
+      const servings = parseInt(servingsInput.value, 10);
+      const ingredientsList = ingredientsInput.value.split('\n').filter(line => line.trim());
+
+      resultsSummary.innerHTML = ''; // Limpiar resultados previos
+
+      ingredientsList.forEach(ingredient => {
+        const parts = ingredient.split(' ');
+        const quantity = parseFloat(parts[0]);
+        const unit = parts.slice(1, -1).join(' ');
+        const name = parts.slice(-1).join(' ');
+
+        if (!isNaN(quantity)) {
+          const adjustedQuantity = (quantity / servingsInput.value) * servings;
+          const resultItem = `
+            <div class="summary-item">
+              <h4>${name}</h4>
+              <p>${adjustedQuantity.toFixed(2)} ${unit}</p>
+            </div>
+          `;
+          resultsSummary.innerHTML += resultItem;
+        }
+      });
+    }
+
+    // Se calcula al presionar el botón
+    calculateBtn.addEventListener('click', calculateIngredients);
+
+    // También recalcula al cambiar el número de porciones
+    servingsInput.addEventListener('input', calculateIngredients);
+  });
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
