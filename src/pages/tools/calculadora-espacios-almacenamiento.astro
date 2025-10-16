@@ -1,0 +1,96 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacios de Almacenamiento',
+  description: `Como usuario que organiza su hogar, quiero una herramienta que me permita ingresar las dimensiones de mis muebles y espacios disponibles, para calcular cuántos muebles caben en cada área y optimizar mi almacenamiento.`,
+  tags: ['organización', 'almacenamiento', 'muebles', 'espacio', 'cálculo']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="space-width">Ancho del espacio (m):</label>
+          <input type="number" id="space-width" class="input-field" placeholder="Ej: 3" />
+        </div>
+        <div class="input-group">
+          <label for="space-length">Largo del espacio (m):</label>
+          <input type="number" id="space-length" class="input-field" placeholder="Ej: 4" />
+        </div>
+        <div class="input-group">
+          <label for="furniture-width">Ancho del mueble (m):</label>
+          <input type="number" id="furniture-width" class="input-field" placeholder="Ej: 1" />
+        </div>
+        <div class="input-group">
+          <label for="furniture-length">Largo del mueble (m):</label>
+          <input type="number" id="furniture-length" class="input-field" placeholder="Ej: 1.5" />
+        </div>
+        <button class="btn btn-primary" id="calculate-btn">Calcular</button>
+      </div>
+      
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Total de muebles que caben:</h4>
+            <p id="total-furniture">0</p>
+          </div>
+          <div class="summary-item">
+            <h4>Estado de espacio:</h4>
+            <p id="space-status">Insuficiente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const spaceWidthInput = document.getElementById('space-width');
+const spaceLengthInput = document.getElementById('space-length');
+const furnitureWidthInput = document.getElementById('furniture-width');
+const furnitureLengthInput = document.getElementById('furniture-length');
+const totalFurnitureElement = document.getElementById('total-furniture');
+const spaceStatusElement = document.getElementById('space-status');
+
+const calculateFurniture = () => {
+  const spaceWidth = parseFloat(spaceWidthInput.value) || 0;
+  const spaceLength = parseFloat(spaceLengthInput.value) || 0;
+  const furnitureWidth = parseFloat(furnitureWidthInput.value) || 0;
+  const furnitureLength = parseFloat(furnitureLengthInput.value) || 0;
+
+  const spaceArea = spaceWidth * spaceLength;
+  const furnitureArea = furnitureWidth * furnitureLength;
+
+  const totalFurnitures = Math.floor(spaceArea / furnitureArea);
+  totalFurnitureElement.textContent = totalFurnitures;
+
+  if (totalFurnitures > 0) {
+    spaceStatusElement.textContent = totalFurnitures > 2 ? "Espacio suficiente" : "Espacio insuficiente";
+  } else {
+    spaceStatusElement.textContent = "Espacio insuficiente";
+  }
+};
+
+// Añade eventos de entrada a los campos para calcular en tiempo real
+spaceWidthInput.addEventListener('input', calculateFurniture);
+spaceLengthInput.addEventListener('input', calculateFurniture);
+furnitureWidthInput.addEventListener('input', calculateFurniture);
+furnitureLengthInput.addEventListener('input', calculateFurniture);
+
+// Calcula al hacer clic en el botón
+document.getElementById('calculate-btn').addEventListener('click', calculateFurniture);
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
