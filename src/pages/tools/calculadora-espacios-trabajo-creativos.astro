@@ -1,0 +1,73 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacios de Trabajo Creativos',
+  description: `Como trabajador creativo, quiero una herramienta que me ayude a calcular el espacio necesario para diferentes actividades en mi área de trabajo, para optimizar mi entorno y aumentar mi productividad.`,
+  tags: ['espacio', 'trabajo', 'productividad', 'creatividad']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="total-area">Área total disponible (m²):</label>
+          <input id="total-area" type="number" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="activity-count">Número de actividades:</label>
+          <input id="activity-count" type="number" class="input-field" />
+        </div>
+        <button id="calculate-btn" class="btn btn-primary">Calcular</button>
+      </div>
+      
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Espacio recomendado por actividad:</h4>
+            <p id="recommended-space">0 m²</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const totalAreaInput = document.getElementById('total-area');
+const activityCountInput = document.getElementById('activity-count');
+const calculateBtn = document.getElementById('calculate-btn');
+const recommendedSpaceOutput = document.getElementById('recommended-space');
+
+function calculateRecommendedSpace() {
+  const totalArea = parseFloat(totalAreaInput.value);
+  const activityCount = parseInt(activityCountInput.value);
+  
+  if (!isNaN(totalArea) && !isNaN(activityCount) && activityCount > 0) {
+    const recommendedSpace = (totalArea / activityCount).toFixed(2);
+    recommendedSpaceOutput.textContent = `${recommendedSpace} m²`;
+  } else {
+    recommendedSpaceOutput.textContent = '0 m²';
+  }
+}
+
+// Añadir evento al botón de calcular
+calculateBtn.addEventListener('click', calculateRecommendedSpace);
+
+// Actualizar en tiempo real
+totalAreaInput.addEventListener('input', calculateRecommendedSpace);
+activityCountInput.addEventListener('input', calculateRecommendedSpace);
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
