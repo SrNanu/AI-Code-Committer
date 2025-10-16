@@ -1,0 +1,72 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Ahorro de Tiempo',
+  description: `Como profesional ocupado, quiero calcular cuánto tiempo puedo ahorrar al eliminar tareas innecesarias de mi rutina diaria, para optimizar mi productividad.`,
+  tags: ['productividad', 'ahorro de tiempo', 'gestión de tareas', 'rutina']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="time-per-task">Tiempo promedio por tarea (minutos):</label>
+          <input type="number" id="time-per-task" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="days-per-week">Días a la semana:</label>
+          <input type="number" id="days-per-week" class="input-field" />
+        </div>
+        <div class="input-group">
+          <label for="unnecessary-percentage">Porcentaje de tiempo innecesario (%):</label>
+          <input type="number" id="unnecessary-percentage" class="input-field" />
+        </div>
+        <button class="btn btn-primary" id="calculate-btn">Calcular</button>
+      </div>
+      <div class="results-container">
+        <h2>Tiempo Ahorrado:</h2>
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Resultado Total (minutos):</h4>
+            <p id="resultado">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const timePerTaskInput = document.getElementById('time-per-task');
+const daysPerWeekInput = document.getElementById('days-per-week');
+const unnecessaryPercentageInput = document.getElementById('unnecessary-percentage');
+const resultadoElement = document.getElementById('resultado');
+
+const calculateSavingTime = () => {
+  const timePerTask = parseFloat(timePerTaskInput.value) || 0;
+  const daysPerWeek = parseFloat(daysPerWeekInput.value) || 0;
+  const unnecessaryPercentage = parseFloat(unnecessaryPercentageInput.value) || 0;
+
+  const totalMinutes = timePerTask * daysPerWeek;
+  const savingTime = (totalMinutes * (unnecessaryPercentage / 100)).toFixed(2);
+
+  resultadoElement.innerText = savingTime;
+};
+
+timePerTaskInput.addEventListener('input', calculateSavingTime);
+daysPerWeekInput.addEventListener('input', calculateSavingTime);
+unnecessaryPercentageInput.addEventListener('input', calculateSavingTime);
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
