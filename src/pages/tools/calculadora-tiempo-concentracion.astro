@@ -1,0 +1,116 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Tiempo de Concentración',
+  description: `Como estudiante, quiero una herramienta que me permita establecer un tiempo de concentración y pausas, para mejorar mi productividad y mantenerme enfocado durante mis sesiones de estudio.`,
+  tags: ["productividad", "estudio", "tiempo", "concentración"]
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="focusTime">Tiempo de Concentración (minutos)</label>
+          <input type="number" id="focusTime" class="input-field" min="1" required>
+        </div>
+        
+        <div class="input-group">
+          <label for="breakTime">Tiempo de Pausa (minutos)</label>
+          <input type="number" id="breakTime" class="input-field" min="1" required>
+        </div>
+        
+        <button id="startButton" class="btn btn-primary">Iniciar</button>
+        <button id="stopButton" class="btn btn-primary" style="display:none;">Detener</button>
+      </div>
+      
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Tiempo de Concentración Restante</h4>
+            <p id="focusTimeDisplay">0:00</p>
+          </div>
+          <div class="summary-item">
+            <h4>Tiempo de Pausa Restante</h4>
+            <p id="breakTimeDisplay">0:00</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+let focusTime; // Tiempo de concentración en milisegundos
+let breakTime; // Tiempo de pausa en milisegundos
+let timer; // Temporizador
+let isFocusPhase = true;
+
+document.getElementById('startButton').addEventListener('click', function() {
+  focusTime = parseInt(document.getElementById('focusTime').value) * 60 * 1000;
+  breakTime = parseInt(document.getElementById('breakTime').value) * 60 * 1000;
+
+  if (isNaN(focusTime) || isNaN(breakTime)) {
+    return;
+  }
+
+  document.getElementById('startButton').style.display = 'none';
+  document.getElementById('stopButton').style.display = 'inline-block';
+
+  updateDisplay(focusTime, breakTime);
+  startTimer();
+});
+
+document.getElementById('stopButton').addEventListener('click', function() {
+  clearInterval(timer);
+  document.getElementById('startButton').style.display = 'inline-block';
+  document.getElementById('stopButton').style.display = 'none';
+});
+
+function startTimer() {
+  timer = setInterval(() => {
+    if (isFocusPhase) {
+      focusTime -= 1000;
+      if (focusTime <= 0) {
+        clearInterval(timer);
+        isFocusPhase = false;
+        startBreak();
+      }
+    } else {
+      breakTime -= 1000;
+      if (breakTime <= 0) {
+        clearInterval(timer);
+        alert("Fin de la pausa. ¡Buen trabajo!");
+      }
+    }
+    updateDisplay(focusTime, breakTime);
+  }, 1000);
+}
+
+function startBreak() {
+  document.getElementById('focusTimeDisplay').textContent = "0:00";
+  isFocusPhase = false;
+  focusTime = 0; // Establecer tiempo de concentración a 0
+  document.getElementById('breakTimeDisplay').textContent = formatTime(breakTime);
+}
+
+function updateDisplay(focus, breakT) {
+  document.getElementById('focusTimeDisplay').textContent = formatTime(focus);
+  document.getElementById('breakTimeDisplay').textContent = formatTime(isFocusPhase ? 0 : breakT);
+}
+
+function formatTime(ms) {
+  const totalSeconds = Math.max(Math.floor(ms / 1000), 0);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
+</script>
