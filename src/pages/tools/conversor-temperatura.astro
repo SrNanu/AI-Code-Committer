@@ -1,0 +1,74 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Conversor de Celsius a Fahrenheit',
+  description: `Como viajero, quiero una herramienta para convertir rápidamente temperaturas de Celsius a Fahrenheit y viceversa. Debe haber dos campos de entrada, uno para cada unidad, y al escribir en uno, el otro debe actualizarse automáticamente con el valor convertido.`,
+  tags: ['conversor', 'utilidad', 'temperatura', 'viaje']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="converter-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="celsius">Celsius:</label>
+          <input type="number" id="celsius" class="input-field" placeholder="°C" />
+        </div>
+        <div class="input-group">
+          <label for="fahrenheit">Fahrenheit:</label>
+          <input type="number" id="fahrenheit" class="input-field" placeholder="°F" />
+        </div>
+      </div>
+      <div class="results-container">
+        <div class="summary">
+          <div class="summary-item">
+            <h4>Conversión Actual:</h4>
+            <p id="conversionResult">0 °F</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const celsiusInput = document.getElementById('celsius');
+const fahrenheitInput = document.getElementById('fahrenheit');
+const conversionResult = document.getElementById('conversionResult');
+
+celsiusInput.addEventListener('input', () => {
+  const celsius = parseFloat(celsiusInput.value);
+  if (!isNaN(celsius)) {
+    const fahrenheit = (celsius * 9/5) + 32;
+    fahrenheitInput.value = fahrenheit.toFixed(2);
+    conversionResult.textContent = `${fahrenheit.toFixed(2)} °F`;
+  } else {
+    fahrenheitInput.value = '';
+    conversionResult.textContent = `0 °F`;
+  }
+});
+
+fahrenheitInput.addEventListener('input', () => {
+  const fahrenheit = parseFloat(fahrenheitInput.value);
+  if (!isNaN(fahrenheit)) {
+    const celsius = (fahrenheit - 32) * 5/9;
+    celsiusInput.value = celsius.toFixed(2);
+    conversionResult.textContent = `${celsius.toFixed(2)} °C`;
+  } else {
+    celsiusInput.value = '';
+    conversionResult.textContent = `0 °C`;
+  }
+});
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
