@@ -1,0 +1,159 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página (serán reemplazados por los datos de la tarea)
+export const frontmatter = {
+  title: 'Reflejos de Proyectos',
+  description: `Una herramienta para visualizar el tiempo de los proyectos.`,
+  tags: ['proyectos', 'visualización', 'gestión', 'productividad', 'gráfico']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <div class="input-container">
+      <input type="text" id="projectName" placeholder="Nombre del Proyecto" />
+      <input type="date" id="startDate" placeholder="Fecha de Inicio" />
+      <input type="date" id="endDate" placeholder="Fecha de Finalización" />
+      <button id="addProjectButton">Agregar Proyecto</button>
+    </div>
+    <div class="chart-container" id="chartContainer">
+      <!-- Gráfico dinámico se generará aquí -->
+    </div>
+    <button id="reloadButton">Recargar</button>
+    <button id="saveTemplateButton">Guardar como Plantilla</button>
+  </div>
+  <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.getElementById('addProjectButton').addEventListener('click', addProject);
+document.getElementById('reloadButton').addEventListener('click', reloadChart);
+document.getElementById('saveTemplateButton').addEventListener('click', saveChartAsImage);
+
+const projects = [];
+
+function addProject() {
+  const name = document.getElementById('projectName').value;
+  const start = new Date(document.getElementById('startDate').value);
+  const end = new Date(document.getElementById('endDate').value);
+  
+  if (name && start && end) {
+    projects.push({ name, start, end });
+    drawChart();
+  } else {
+    alert("Por favor, completa todos los campos.");
+  }
+}
+
+function drawChart() {
+  const container = document.getElementById('chartContainer');
+  container.innerHTML = ''; // Limpiar gráfico previo
+
+  projects.forEach(project => {
+    const projectDiv = document.createElement('div');
+    projectDiv.className = 'project-line';
+    projectDiv.style.width = `${(project.end - project.start) / (1000 * 3600 * 24)}px`;
+    projectDiv.style.left = `${(project.start - new Date(projects[0].start)) / (1000 * 3600 * 24)}px`;
+    projectDiv.textContent = project.name;
+    container.appendChild(projectDiv);
+  });
+}
+
+function reloadChart() {
+  projects.length = 0;
+  document.getElementById('chartContainer').innerHTML = '';
+}
+
+function saveChartAsImage() {
+  // Implementar lógica para guardar como imagen
+}
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
+
+<style>
+/* === COMIENZA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+.tool-container {
+  background-color: var(--card-bg);
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-color) 0 0 10px;
+}
+
+h1 {
+  color: rgb(var(--accent));
+  font-family: var(--font-family-sans);
+  font-size: 2.5rem;
+}
+
+.input-container {
+  margin-bottom: 1.5rem;
+}
+
+input {
+  margin-right: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  font-family: var(--font-family-sans);
+}
+
+button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: rgb(var(--accent));
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: rgb(var(--accent-secondary));
+}
+
+.chart-container {
+  position: relative;
+  height: 3rem;
+  background-color: var(--app-bg);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.project-line {
+  position: absolute;
+  background-color: rgb(var(--accent-secondary));
+  height: 100%;
+  color: var(--text-color);
+  text-align: center;
+  line-height: 3rem;
+  border-radius: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  h1 {
+      font-size: 2rem;
+  }
+}
+
+.back-link {
+  text-decoration: none;
+  margin-bottom: 1rem;
+  display: inline-block;
+  color: var(--text-secondary);
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* === TERMINA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+</style>
