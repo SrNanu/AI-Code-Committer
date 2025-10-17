@@ -1,0 +1,109 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Generador de Desafíos Creativos',
+  description: `Como artista, escritor o creador de contenido, quiero una herramienta que me ofrezca desafíos creativos diarios basados en diferentes categorías (escritura, dibujo, fotografía) para estimular mi creatividad y salir de mi zona de confort.`,
+  tags: ['creatividad', 'desafíos', 'arte', 'escritura', 'generador']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="tool-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="challenge-category">Selecciona una categoría:</label>
+          <select id="challenge-category" class="input-field">
+            <option value="escritura">Escritura</option>
+            <option value="dibujo">Dibujo</option>
+            <option value="fotografia">Fotografía</option>
+          </select>
+        </div>
+        <button id="generate-challenge" class="btn btn-primary">Generar Desafío</button>
+        <div id="feedback-message" class="feedback-message"></div>
+      </div>
+      
+      <div class="results-container">
+        <div class="summary">
+          <h2>Desafío Generado:</h2>
+          <div id="challenge-output" class="summary-item">
+            <h4 id="challenge-title"></h4>
+            <p id="challenge-description"></p>
+          </div>
+          <div class="task-actions">
+            <button id="save-challenge" class="btn btn-primary">Guardar Desafío</button>
+            <button id="share-challenge" class="btn btn-primary">Compartir Desafío</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const challenges = {
+  'escritura': [
+    'Escribe un poema sobre un atardecer.',
+    'Crea una historia basada en una fotografía antigua.',
+    'Describe un objeto cotidiano como si fuera algo mágico.'
+  ],
+  'dibujo': [
+    'Dibuja un paisaje de tu lugar favorito.',
+    'Haz un retrato de tu amigo más cercano.',
+    'Crea una ilustración de un animal en un entorno surrealista.'
+  ],
+  'fotografia': [
+    'Captura la esencia de tu ciudad en una imagen.',
+    'Fotografía algo que te haga sentir nostalgia.',
+    'Realiza un autorretrato que cuente una historia sobre ti.'
+  ]
+};
+
+const generateChallengeButton = document.getElementById('generate-challenge');
+const challengeOutputTitle = document.getElementById('challenge-title');
+const challengeOutputDescription = document.getElementById('challenge-description');
+const feedbackMessage = document.getElementById('feedback-message');
+
+generateChallengeButton.addEventListener('click', () => {
+  const category = document.getElementById('challenge-category').value;
+  const challengesList = challenges[category];
+  const randomChallenge = challengesList[Math.floor(Math.random() * challengesList.length)];
+
+  challengeOutputTitle.textContent = `Desafío de ${category.charAt(0).toUpperCase() + category.slice(1)}`;
+  challengeOutputDescription.textContent = randomChallenge;
+});
+
+document.getElementById('save-challenge').addEventListener('click', () => {
+  const challengeText = challengeOutputDescription.textContent;
+  if (challengeText) {
+    feedbackMessage.textContent = 'Desafío guardado exitosamente!';
+    feedbackMessage.style.color = 'green';
+  } else {
+    feedbackMessage.textContent = 'Por favor, genera un desafío primero.';
+    feedbackMessage.style.color = 'red';
+  }
+});
+
+document.getElementById('share-challenge').addEventListener('click', () => {
+  const challengeText = challengeOutputDescription.textContent;
+  if (challengeText) {
+    const shareUrl = `https://www.socialmedia.com/share?text=${encodeURIComponent(challengeText)}`;
+    feedbackMessage.textContent = `Desafío listo para ser compartido: ${shareUrl}`;
+    feedbackMessage.style.color = 'blue';
+  } else {
+    feedbackMessage.textContent = 'Por favor, genera un desafío primero.';
+    feedbackMessage.style.color = 'red';
+  }
+});
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
