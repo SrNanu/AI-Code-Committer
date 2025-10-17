@@ -1,0 +1,187 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página (serán reemplazados por los datos de la tarea)
+export const frontmatter = {
+  title: 'TechLanding Optimize',
+  description: 'Crea tu landing page atractiva y optimizada para conversiones rápidamente.',
+  tags: ['landing page', 'startup', 'tecnología', 'optimización', 'conversiones']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+
+    <section class="startup-info">
+      <h2>Información de la Startup</h2>
+      <input type="text" placeholder="Nombre de la Startup" id="startupName" />
+      <textarea placeholder="Descripción de la Startup" id="startupDescription"></textarea>
+    </section>
+
+    <section class="product-images">
+      <h2>Imágenes de Productos o Servicios</h2>
+      <input type="file" id="productImages" multiple />
+    </section>
+
+    <section class="testimonials">
+      <h2>Testimonios</h2>
+      <div id="testimonialList"></div>
+      <input type="text" placeholder="Nuevo Testimonio" id="newTestimonial" />
+      <button id="addTestimonial">Agregar Testimonio</button>
+    </section>
+
+    <section class="subscription">
+      <h2>Suscríbete para más información</h2>
+      <input type="email" placeholder="Tu correo electrónico" id="subscriberEmail" />
+      <button id="subscribe">Suscribirse</button>
+    </section>
+
+    <section class="pricing">
+      <h2>Planes y Tarifas</h2>
+      <div class="plan">
+        <h3>Plan Básico</h3>
+        <p>Funciones: Función A, Función B</p>
+        <p>Precio: $10/mes</p>
+      </div>
+      <div class="plan">
+        <h3>Plan Avanzado</h3>
+        <p>Funciones: Función A, Función B, Función C</p>
+        <p>Precio: $20/mes</p>
+      </div>
+    </section>
+
+    <section class="analytics">
+      <h2>Estadísticas en Tiempo Real</h2>
+      <p>Visitas: <span id="visitCount">0</span></p>
+      <p>Conversiones: <span id="conversionCount">0</span></p>
+    </section>
+
+    <section class="preview">
+      <h2>Vista Previa de la Landing Page</h2>
+      <button id="previewBtn">Vista Previa</button>
+    </section>
+
+    <section class="social-share">
+      <h2>Comparte en tus Redes Sociales</h2>
+      <button id="shareFacebook">Facebook</button>
+      <button id="shareTwitter">Twitter</button>
+    </section>
+
+    <button id="exportHtml">Exportar como HTML</button>
+  </div>
+  <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+
+document.getElementById('addTestimonial').addEventListener('click', () => {
+  const testimonialInput = document.getElementById('newTestimonial');
+  const testimonialText = testimonialInput.value;
+  if (testimonialText) {
+    const testimonialList = document.getElementById('testimonialList');
+    const testimonialItem = document.createElement('div');
+    testimonialItem.textContent = testimonialText;
+    testimonialList.appendChild(testimonialItem);
+    testimonialInput.value = ''; // Limpiar el campo de input
+  }
+});
+
+document.getElementById('subscribe').addEventListener('click', () => {
+  const email = document.getElementById('subscriberEmail').value;
+  alert(`Te has suscrito con ${email}`);
+});
+
+document.getElementById('exportHtml').addEventListener('click', () => {
+  const name = document.getElementById('startupName').value;
+  const description = document.getElementById('startupDescription').value;
+  // Lógica para exportar contenido como HTML podría ir aquí
+  alert('Página exportada como HTML');
+});
+
+// Simulación de aumentos en visitas y conversiones
+setInterval(() => {
+  document.getElementById('visitCount').textContent = parseInt(document.getElementById('visitCount').textContent) + 1;
+  document.getElementById('conversionCount').textContent = parseInt(document.getElementById('conversionCount').textContent) + (Math.random() > 0.5 ? 1 : 0);
+}, 10000); // Cada 10 segundos
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
+
+<style>
+/* === COMIENZA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+
+body {
+  font-family: var(--font-family-sans);
+  color: var(--text-color);
+  background-color: var(--app-bg);
+  margin: 0;
+  padding: 2rem;
+}
+
+.tool-container {
+  max-width: 800px;
+  margin: auto;
+  background-color: var(--card-bg);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: var(--shadow-color);
+}
+
+h1, h2 {
+  color: rgb(var(--accent));
+}
+
+input[type="text"],
+input[type="email"],
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+}
+
+button {
+  background-color: rgb(var(--accent));
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: rgb(var(--accent-secondary));
+}
+
+.plan {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.social-share {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .tool-container {
+    padding: 1rem;
+  }
+
+  button {
+    width: 100%;
+  }
+}
+
+/* === TERMINA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+</style>
