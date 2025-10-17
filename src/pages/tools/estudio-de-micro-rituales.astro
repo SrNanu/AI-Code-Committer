@@ -1,0 +1,1358 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página (serán reemplazados por los datos de la tarea)
+export const frontmatter = {
+  title: 'Estudio de Micro-Rituales',
+  description: `Crea, edita y guía micro-rituales sensoriales — rápidos, personalizables y con estética meditativa.`,
+  tags: ['ritual', 'micro-hábito', 'timer', 'bienestar', 'productividad', 'visual', 'generador', 'UX']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link" aria-label="Volver a la Fábrica">&larr; Volver a la Fábrica</a>
+
+  <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  <div class="tool-container" id="app">
+    <header class="hero" aria-hidden="false">
+      <div class="hero-deco" aria-hidden="true">
+        <!-- SVG micro-animación de fondo (sutil) -->
+        <svg viewBox="0 0 800 200" preserveAspectRatio="none" class="hero-svg">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1">
+              <stop offset="0" stop-color="rgba(255,255,255,0.05)"/>
+              <stop offset="1" stop-color="rgba(255,255,255,0.01)"/>
+            </linearGradient>
+          </defs>
+          <rect width="800" height="200" fill="url(#g1)"></rect>
+          <g class="blob" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2">
+            <path d="M40 120 C120 20 220 180 320 80 C420 -20 520 160 700 60" />
+          </g>
+        </svg>
+      </div>
+
+      <div class="hero-content">
+        <h1 class="hero-title">{frontmatter.title}</h1>
+        <p class="hero-sub">Un estudio sensorial para crear micro-rituales — rápidos, bellos y útiles.</p>
+        <div class="hero-meta">
+          <img src="https://placehold.co/64x64?text=Studio" alt="Logo del Estudio" class="studio-logo">
+          <div class="meta-text">
+            <small class="meta-note">Diseño & Guía</small>
+            <strong class="meta-owner">Tu Estudio</strong>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <!-- Panel de configuración -->
+      <aside class="panel" id="config-panel" aria-label="Panel de configuración">
+        <div class="panel-section">
+          <label for="duration" class="label">Duración total</label>
+          <div class="duration-row">
+            <input id="duration" type="range" min="1" max="10" step="1" value="5" aria-valuemin="1" aria-valuemax="10" aria-valuenow="5">
+            <output id="durationValue">5 min</output>
+          </div>
+          <div class="presets">
+            <button class="preset" data-min="1">1</button>
+            <button class="preset" data-min="3">3</button>
+            <button class="preset" data-min="5">5</button>
+            <button class="preset" data-min="10">10</button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <label class="label">Enfoque</label>
+          <div class="chips" role="tablist" aria-label="Seleccionar enfoque">
+            <button class="chip focus-chip active" data-focus="mente" aria-pressed="true">Mente</button>
+            <button class="chip focus-chip" data-focus="cuerpo" aria-pressed="false">Cuerpo</button>
+            <button class="chip focus-chip" data-focus="creatividad" aria-pressed="false">Creatividad</button>
+            <button class="chip focus-chip" data-focus="pausa" aria-pressed="false">Pausa</button>
+          </div>
+          <div class="focus-note" id="focusPaletteNote">Paleta: Serenidad azul</div>
+        </div>
+
+        <div class="panel-section">
+          <label class="label">Intensidad / Ritmo</label>
+          <div class="intensity">
+            <button class="intensity-btn active" data-int="suave" aria-pressed="true">Suave</button>
+            <button class="intensity-btn" data-int="medio" aria-pressed="false">Medio</button>
+            <button class="intensity-btn" data-int="rapido" aria-pressed="false">Rápido</button>
+          </div>
+          <small class="hint">Afecta número de pasos y distribución</small>
+        </div>
+
+        <div class="panel-section row">
+          <button id="randomizeBtn" class="btn outline" title="Crear una secuencia aleatoria">Aleatorizar</button>
+          <button id="generateBtn" class="btn primary" title="Generar ritual">Generar Ritual</button>
+        </div>
+
+        <div class="panel-section extras">
+          <label class="label">Modo Sorpresa</label>
+          <div class="row">
+            <input id="surprise" type="checkbox">
+            <label for="surprise" class="small">Incluir pasos inesperados</label>
+          </div>
+
+          <div class="row">
+            <input id="pingSound" type="checkbox" checked>
+            <label for="pingSound" class="small">Ping suave (sonoro)</label>
+          </div>
+
+          <div class="row save-presets">
+            <button id="savePreset" class="btn outline">Guardar como favorito</button>
+            <button id="loadPreset" class="btn" title="Cargar favorito">Cargar favorito</button>
+          </div>
+        </div>
+
+        <div class="panel-footer">
+          <small class="muted">Modo oscuro activará según preferencia del sistema.</small>
+        </div>
+      </aside>
+
+      <!-- Área de edición y previsualización -->
+      <section class="editor" aria-label="Editor de secuencia">
+        <div class="editor-header">
+          <h2 class="section-title">Secuencia</h2>
+          <div class="editor-actions">
+            <label class="compact-toggle">
+              <input type="checkbox" id="compactToggle">
+              <span>Compacta</span>
+            </label>
+            <div class="timing-sum">
+              <small>Total:</small>
+              <strong id="totalTime">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <div id="stepsList" class="cards" aria-live="polite" aria-label="Lista de pasos">
+          <!-- Cards generadas aquí -->
+        </div>
+
+        <div class="editor-controls">
+          <button id="addStep" class="btn outline" title="Agregar paso">+ Agregar paso</button>
+          <button id="startBtn" class="btn start" title="Iniciar ritual">Iniciar Ritual</button>
+        </div>
+
+        <div class="exports">
+          <button id="copyBtn" class="btn">Copiar ritual</button>
+          <button id="downloadBtn" class="btn outline">Guardar como tarjeta (SVG)</button>
+          <div class="socials">
+            <button id="shareBtn" class="icon-btn" title="Compartir">🔗</button>
+            <a href="https://placehold.co/24x24" target="_blank" rel="noopener" class="icon-link" title="Perfil (opcional)">👤</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Overlay de guía / ejecución del ritual -->
+    <div id="guideOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Guía del Ritual">
+      <div class="guide-card" role="region" aria-live="polite">
+        <div class="guide-header">
+          <button id="closeGuide" class="btn icon" title="Cerrar guía">✕</button>
+          <div class="guide-stage" id="guideStageLabel">Ritual</div>
+        </div>
+
+        <div class="guide-main">
+          <div class="active-step" id="activeStepCard">
+            <!-- Visual background cambia con el paso -->
+            <div class="step-icon" id="guideIcon" aria-hidden="true"></div>
+            <h3 id="guideTitle">Respirar</h3>
+            <p id="guideInstruction">Inhala y exhala con calma</p>
+
+            <div class="timer-wrap">
+              <svg class="timer-circle" viewBox="0 0 120 120" aria-hidden="true">
+                <defs></defs>
+                <circle cx="60" cy="60" r="50" class="timer-bg"></circle>
+                <circle cx="60" cy="60" r="50" class="timer-fg" id="timerFg"></circle>
+              </svg>
+              <div class="timer-number" id="timerNumber" aria-live="assertive">00:00</div>
+            </div>
+
+            <div class="progress-global">
+              <div class="progress-bar" id="globalProgress"></div>
+            </div>
+          </div>
+
+          <div class="guide-controls">
+            <button id="pauseBtn" class="btn">Pausa</button>
+            <button id="skipBtn" class="btn outline">Saltar</button>
+            <button id="restartBtn" class="btn" title="Reiniciar ritual">Reiniciar</button>
+            <button id="muteBtn" class="btn icon" title="Silenciar">🔈</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nota / advertencia -->
+    <div id="note" class="note hidden" role="status" aria-live="polite"></div>
+
+  </div>
+  <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+
+(() => {
+  // Utilidades
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const formatTime = s => {
+    const mm = Math.floor(s / 60).toString().padStart(2,'0');
+    const ss = Math.floor(s % 60).toString().padStart(2,'0');
+    return `${mm}:${ss}`;
+  };
+
+  // Micro-steps internal set
+  const MICRO_STEPS = {
+    mente: [
+      {id:'m1', title:'Respirar 6 ciclos', instr:'Respira profundo 6 veces, exhalando despacio.', icon:'breath'},
+      {id:'m2', title:'Micro-meditación', instr:'Focaliza la atención en el cuerpo 30s.', icon:'dot'},
+      {id:'m3', title:'Observación', instr:'Escanea tu postura, relaja hombros.', icon:'pulse'},
+      {id:'m4', title:'Visualizar 20s', instr:'Visualiza un color que te calme.', icon:'eye'}
+    ],
+    cuerpo: [
+      {id:'c1', title:'Estiramiento', instr:'Estira cuello y hombros lentamente.', icon:'stretch'},
+      {id:'c2', title:'Movilidad', instr:'Gira muñecas, tobillos y hombros.', icon:'wave'},
+      {id:'c3', title:'Pausa de pie', instr:'Levántate y alinea tu columna.', icon:'stand'},
+      {id:'c4', title:'Punto energético', instr:'Presiona ligera palma en pecho.', icon:'dot'}
+    ],
+    creatividad: [
+      {id:'cr1', title:'Escribir 1 min', instr:'Anota una idea en 60s.', icon:'pen'},
+      {id:'cr2', title:'Doodle 30s', instr:'Haz un garabato libremente.', icon:'scribble'},
+      {id:'cr3', title:'Asociación', instr:'Relaciona dos ideas opuestas.', icon:'spark'},
+      {id:'cr4', title:'Respirar creativo', instr:'Respira con ritmo y deja fluir.', icon:'breath'}
+    ],
+    pausa: [
+      {id:'p1', title:'Mirar fuera', instr:'Mira a lo lejos 20s y parpadea.', icon:'eye'},
+      {id:'p2', title:'Silencio', instr:'Cierra ojos y escucha 30s.', icon:'dot'},
+      {id:'p3', title:'Micro-pausa', instr:'Respira suave y suelta tensión.', icon:'pulse'}
+    ]
+  };
+
+  // State
+  let state = {
+    totalMinutes: 5,
+    focus: 'mente',
+    intensity: 'suave',
+    surprise: false,
+    pingSound: true,
+    compact: false,
+    steps: [], // {id,title,instr,duration,icon}
+    running: false,
+    currentIndex: 0,
+    elapsed: 0,
+    timerInterval: null,
+    audioEnabled: true
+  };
+
+  // DOM
+  const durationEl = $('#duration');
+  const durationValueEl = $('#durationValue');
+  const presets = $$('.preset');
+  const chips = $$('.focus-chip');
+  const intensityBtns = $$('.intensity-btn');
+  const randomizeBtn = $('#randomizeBtn');
+  const generateBtn = $('#generateBtn');
+  const surpriseEl = $('#surprise');
+  const pingSoundEl = $('#pingSound');
+  const stepsListEl = $('#stepsList');
+  const totalTimeEl = $('#totalTime');
+  const compactToggle = $('#compactToggle');
+  const addStepBtn = $('#addStep');
+  const startBtn = $('#startBtn');
+  const startMainBtn = $('#startBtn');
+  const guideOverlay = $('#guideOverlay');
+  const closeGuideBtn = $('#closeGuide');
+  const activeTitle = $('#guideTitle');
+  const activeInstr = $('#guideInstruction');
+  const guideIcon = $('#guideIcon');
+  const timerNumber = $('#timerNumber');
+  const timerFg = $('#timerFg');
+  const globalProgress = $('#globalProgress');
+  const pauseBtn = $('#pauseBtn');
+  const skipBtn = $('#skipBtn');
+  const restartBtn = $('#restartBtn');
+  const muteBtn = $('#muteBtn');
+  const copyBtn = $('#copyBtn');
+  const downloadBtn = $('#downloadBtn');
+  const shareBtn = $('#shareBtn');
+  const noteEl = $('#note');
+  const savePreset = $('#savePreset');
+  const loadPreset = $('#loadPreset');
+
+  // Initialize UI
+  function initUI() {
+    durationValueEl.textContent = `${state.totalMinutes} min`;
+    durationEl.value = state.totalMinutes;
+
+    // Event listeners
+    durationEl.addEventListener('input', e => {
+      state.totalMinutes = parseInt(e.target.value,10);
+      durationValueEl.textContent = `${state.totalMinutes} min`;
+    });
+
+    presets.forEach(btn => btn.addEventListener('click', () => {
+      const val = parseInt(btn.dataset.min,10);
+      state.totalMinutes = val;
+      durationEl.value = val;
+      durationValueEl.textContent = `${val} min`;
+    }));
+
+    chips.forEach(ch => ch.addEventListener('click', () => {
+      chips.forEach(c => c.classList.remove('active'));
+      chips.forEach(c => c.setAttribute('aria-pressed','false'));
+      ch.classList.add('active');
+      ch.setAttribute('aria-pressed','true');
+      state.focus = ch.dataset.focus;
+      updatePaletteNote();
+    }));
+
+    intensityBtns.forEach(b => b.addEventListener('click', () => {
+      intensityBtns.forEach(x => x.classList.remove('active'));
+      intensityBtns.forEach(x => x.setAttribute('aria-pressed','false'));
+      b.classList.add('active');
+      b.setAttribute('aria-pressed','true');
+      state.intensity = b.dataset.int;
+    }));
+
+    surpriseEl.addEventListener('change', () => state.surprise = surpriseEl.checked);
+    pingSoundEl.addEventListener('change', () => state.pingSound = pingSoundEl.checked);
+
+    randomizeBtn.addEventListener('click', () => {
+      randomizeSequence();
+      notify('Aleatorización lista');
+    });
+
+    generateBtn.addEventListener('click', () => {
+      generateSequence();
+      notify('Ritual generado');
+    });
+
+    compactToggle.addEventListener('change', () => {
+      state.compact = compactToggle.checked;
+      renderSteps();
+    });
+
+    addStepBtn.addEventListener('click', () => {
+      addCustomStep();
+    });
+
+    startBtn.addEventListener('click', () => {
+      if (state.steps.length === 0) {
+        notify('Genera una secuencia primero', 3000);
+        return;
+      }
+      startGuide();
+    });
+
+    closeGuideBtn.addEventListener('click', stopGuide);
+    pauseBtn.addEventListener('click', togglePause);
+    skipBtn.addEventListener('click', skipStep);
+    restartBtn.addEventListener('click', restartGuide);
+    muteBtn.addEventListener('click', () => {
+      state.audioEnabled = !state.audioEnabled;
+      muteBtn.textContent = state.audioEnabled ? '🔈' : '🔇';
+    });
+
+    copyBtn.addEventListener('click', copyRitual);
+    downloadBtn.addEventListener('click', downloadSVGCard);
+    shareBtn.addEventListener('click', tryShare);
+
+    savePreset.addEventListener('click', saveFavorite);
+    loadPreset.addEventListener('click', loadFavorite);
+
+    // Keyboard control: space or Enter for pause/start in guide
+    document.addEventListener('keydown', (e) => {
+      if (!guideOverlay.classList.contains('hidden')) {
+        if (e.code === 'Space' || e.key === ' ') {
+          e.preventDefault();
+          togglePause();
+        } else if (e.key === 'Enter') {
+          togglePause();
+        } else if (e.key === 'ArrowRight') {
+          skipStep();
+        } else if (e.key === 'Escape') {
+          stopGuide();
+        }
+      }
+    });
+
+    // Load initial default sequence
+    generateSequence();
+    updatePaletteNote();
+  }
+
+  // Palette note text update
+  function updatePaletteNote() {
+    const note = $('#focusPaletteNote');
+    const map = {
+      mente: 'Paleta: Serenidad azul',
+      cuerpo: 'Paleta: Naturaleza cálida',
+      creatividad: 'Paleta: Energía coral',
+      pausa: 'Paleta: Neutra suave'
+    };
+    note.textContent = map[state.focus] || '';
+    // apply data attribute to root for CSS theme switch
+    document.documentElement.setAttribute('data-focus', state.focus);
+  }
+
+  // Notify small message
+  let noteTimer = null;
+  function notify(msg, time = 1500) {
+    if (noteTimer) clearTimeout(noteTimer);
+    noteEl.textContent = msg;
+    noteEl.classList.remove('hidden');
+    noteTimer = setTimeout(() => {
+      noteEl.classList.add('hidden');
+    }, time);
+  }
+
+  // Generator logic
+  function chooseRandomFrom(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function generateSequence() {
+    // main generator using state.totalMinutes, intensity, focus and surprise
+    const totalSeconds = state.totalMinutes * 60;
+    let targetSteps = 3;
+    if (state.intensity === 'suave') targetSteps = 2 + Math.floor(Math.random()*2); // 2-3
+    if (state.intensity === 'medio') targetSteps = 3 + Math.floor(Math.random()*2); // 3-4
+    if (state.intensity === 'rapido') targetSteps = 4 + Math.floor(Math.random()*2); //4-5
+
+    targetSteps = Math.max(2, Math.min(5, targetSteps));
+
+    let pool = [...MICRO_STEPS[state.focus] || []];
+    if (state.surprise) {
+      // add some from other categories occasionally
+      const others = Object.keys(MICRO_STEPS).filter(k => k !== state.focus);
+      const otherKey = chooseRandomFrom(others);
+      pool = pool.concat(MICRO_STEPS[otherKey].slice(0,2));
+    }
+
+    // ensure we have enough distinct choices
+    const chosen = [];
+    for (let i=0;i<targetSteps;i++) {
+      if (pool.length === 0) break;
+      const pick = pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+      chosen.push({...pick});
+    }
+
+    // distribute durations according to intensity
+    const minPerStep = 10; // seconds
+    const base = Math.floor(totalSeconds / chosen.length);
+    let durations = chosen.map(() => base);
+    let remain = totalSeconds - base * chosen.length;
+    let idx = 0;
+    while (remain > 0) {
+      durations[idx % durations.length] += 1;
+      idx++;
+      remain--;
+    }
+
+    // enforce minPerStep: if any below, merge or adjust
+    for (let i=0;i<durations.length;i++) {
+      if (durations[i] < minPerStep) durations[i] = minPerStep;
+    }
+    // adjust total back
+    let sum = durations.reduce((a,b)=>a+b,0);
+    while (sum > totalSeconds) {
+      // take from the largest step > minPerStep
+      let maxIdx = durations.indexOf(Math.max(...durations));
+      if (durations[maxIdx] > minPerStep) {
+        durations[maxIdx]--;
+        sum--;
+      } else break;
+    }
+    while (sum < totalSeconds) {
+      durations[0]++;
+      sum++;
+    }
+
+    // compose steps
+    state.steps = chosen.map((c, i) => ({
+      uid: `${c.id}-${Date.now()}-${i}`,
+      title: c.title,
+      instr: c.instr,
+      icon: c.icon,
+      duration: durations[i]
+    }));
+
+    renderSteps();
+    updateTotalTime();
+  }
+
+  function randomizeSequence() {
+    // pick random number of steps and random focus each step possibly
+    const totalSeconds = state.totalMinutes * 60;
+    const targetSteps = 2 + Math.floor(Math.random()*4); // 2-5
+    const allPools = Object.values(MICRO_STEPS).flat();
+    const chosen = [];
+    for (let i=0;i<targetSteps;i++) {
+      const pick = chooseRandomFrom(allPools);
+      chosen.push({...pick});
+    }
+    const base = Math.floor(totalSeconds / chosen.length);
+    let durations = chosen.map(() => base);
+    let remain = totalSeconds - base * durations.length;
+    let idx=0;
+    while (remain>0) { durations[idx%durations.length]++; idx++; remain--; }
+
+    state.steps = chosen.map((c,i)=>({
+      uid: `${c.id}-${Date.now()}-${i}`,
+      title: c.title,
+      instr: c.instr,
+      icon: c.icon,
+      duration: durations[i]
+    }));
+    renderSteps();
+    updateTotalTime();
+  }
+
+  // Render steps
+  function renderSteps() {
+    stepsListEl.innerHTML = '';
+    state.steps.forEach((s, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.uid = s.uid;
+      card.innerHTML = `
+        <div class="card-left">
+          <div class="icon-wrap" aria-hidden="true">${renderIconSVG(s.icon)}</div>
+        </div>
+        <div class="card-main">
+          <div class="card-row">
+            <div class="card-title" contenteditable="true" data-field="title" aria-label="Editar título">${escapeHtml(s.title)}</div>
+            <div class="card-duration">
+              <input type="number" min="5" step="1" value="${Math.max(5, Math.round(s.duration))}" class="dur-input" aria-label="Duración del paso (segundos)">
+              <small>seg</small>
+            </div>
+          </div>
+          <div class="card-instr ${state.compact ? 'hidden' : ''}" contenteditable="true" data-field="instr" aria-label="Editar instrucción">${escapeHtml(s.instr)}</div>
+        </div>
+        <div class="card-actions">
+          <button class="icon-btn move-up" title="Mover arriba" aria-label="Mover arriba">⬆️</button>
+          <button class="icon-btn move-down" title="Mover abajo" aria-label="Mover abajo">⬇️</button>
+          <button class="icon-btn duplicate" title="Duplicar" aria-label="Duplicar">⎘</button>
+          <button class="icon-btn delete" title="Eliminar" aria-label="Eliminar">🗑</button>
+        </div>
+      `;
+      stepsListEl.appendChild(card);
+
+      // Bind events
+      const durInput = card.querySelector('.dur-input');
+      durInput.addEventListener('change', (e) => {
+        let val = Math.max(5, parseInt(e.target.value,10) || 0);
+        s.duration = val;
+        redistributeDurations(s.uid);
+        renderSteps();
+        updateTotalTime();
+      });
+
+      const titleEl = card.querySelector('[data-field="title"]');
+      titleEl.addEventListener('input', (e) => {
+        s.title = e.target.textContent.trim();
+      });
+
+      const instrEl = card.querySelector('[data-field="instr"]');
+      instrEl.addEventListener('input', (e) => {
+        s.instr = e.target.textContent.trim();
+      });
+
+      card.querySelector('.move-up').addEventListener('click', () => {
+        moveStep(i, i-1);
+      });
+      card.querySelector('.move-down').addEventListener('click', () => {
+        moveStep(i, i+1);
+      });
+      card.querySelector('.duplicate').addEventListener('click', () => {
+        duplicateStep(i);
+      });
+      card.querySelector('.delete').addEventListener('click', () => {
+        removeStep(i);
+      });
+    });
+  }
+
+  function renderIconSVG(type) {
+    // minimal icon set drawn with SVG string
+    switch (type) {
+      case 'breath':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" class="mini-icon"><path d="M3 12c3-6 9-8 13-6 4 2 4 8 0 12-4 4-10 2-13-6z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      case 'pulse':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><path d="M2 12h4l2-6 2 12 3-8 3 6h3" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      case 'dot':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>`;
+      case 'stretch':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><path d="M4 20c4-4 6-9 8-12 2 3 4 8 8 12" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>`;
+      case 'eye':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" stroke-width="1.4" fill="none"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>`;
+      case 'pen':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><path d="M3 21l3-1 11-11 2 2-11 11-1 3z" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>`;
+      case 'scribble':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><path d="M3 12c4 2 6-6 11-4 3 1 3 6 1 8-2 2-6 3-10 1" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>`;
+      case 'wave':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><path d="M2 12c3-4 5 0 8 0 3 0 5-4 8-4" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>`;
+      case 'stand':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><path d="M12 2v6M6 22v-4h12v4" stroke="currentColor" stroke-width="1.4" fill="none"/></svg>`;
+      case 'spark':
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>`;
+      default:
+        return `<svg width="48" height="48" viewBox="0 0 24 24" class="mini-icon"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>`;
+    }
+  }
+
+  function escapeHtml(s) {
+    return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // Step modifications
+  function addCustomStep() {
+    state.steps.push({
+      uid: `custom-${Date.now()}`,
+      title: 'Nuevo paso',
+      instr: 'Instrucción breve...',
+      icon: 'dot',
+      duration: Math.max(10, Math.floor((state.totalMinutes*60) / Math.max(2,state.steps.length+1)))
+    });
+    redistributeAllDurations();
+    renderSteps();
+    updateTotalTime();
+  }
+
+  function moveStep(from, to) {
+    if (to < 0 || to >= state.steps.length) return;
+    const [m] = state.steps.splice(from,1);
+    state.steps.splice(to,0,m);
+    renderSteps();
+  }
+
+  function duplicateStep(i) {
+    const s = state.steps[i];
+    const copy = {...s, uid: `dup-${Date.now()}`};
+    state.steps.splice(i+1,0,copy);
+    redistributeAllDurations();
+    renderSteps();
+    updateTotalTime();
+  }
+
+  function removeStep(i) {
+    state.steps.splice(i,1);
+    redistributeAllDurations();
+    renderSteps();
+    updateTotalTime();
+  }
+
+  function redistributeAllDurations() {
+    const total = state.totalMinutes * 60;
+    if (state.steps.length===0) return;
+    let base = Math.floor(total / state.steps.length);
+    let durations = state.steps.map(()=>base);
+    let remain = total - base * durations.length;
+    let idx=0;
+    while (remain>0) { durations[idx%durations.length]++; idx++; remain--; }
+    state.steps.forEach((s,i)=> s.duration = durations[i]);
+  }
+
+  function redistributeDurations(editedUid) {
+    // When one step duration edited, adjust others proportionally
+    const total = state.totalMinutes * 60;
+    const edited = state.steps.find(s => s.uid === editedUid);
+    if (!edited) return;
+    const minSec = 10;
+    let remaining = total - edited.duration;
+    const others = state.steps.filter(s => s.uid !== editedUid);
+    if (others.length === 0) {
+      if (edited.duration !== total) {
+        edited.duration = total;
+      }
+      return;
+    }
+    // Distribute remaining proportionally to previous durations
+    const prevSum = others.reduce((a,b)=>a+b.duration,0);
+    if (remaining < others.length * minSec) {
+      notify('No hay suficiente tiempo para mantener el resto. Ajustando mínimos.',3000);
+      // give minSec to each, then assign remaining to edited (or reduce edited)
+      const minTotal = others.length * minSec;
+      if (minTotal > total) {
+        // impossible to satisfy, normalize to min allowed
+        edited.duration = Math.max(minSec, total - minTotal);
+        remaining = total - edited.duration;
+      }
+      others.forEach(s => s.duration = minSec);
+      // distribute any leftover
+      let leftover = remaining - minTotal;
+      let idx=0;
+      while (leftover>0) { others[idx%others.length].duration++; idx++; leftover--; }
+    } else {
+      others.forEach(s => {
+        const prop = s.duration / (prevSum || others.length);
+        s.duration = Math.max(minSec, Math.round(remaining * prop));
+      });
+      // fix rounding
+      let sumOthers = others.reduce((a,b)=>a+b.duration,0);
+      while (sumOthers > remaining) {
+        // reduce largest > minSec
+        let maxS = others.reduce((p,c)=> (c.duration>p.duration?c:p), others[0]);
+        if (maxS.duration > minSec) { maxS.duration--; sumOthers--; } else break;
+      }
+      while (sumOthers < remaining) {
+        others[0].duration++; sumOthers++;
+      }
+    }
+  }
+
+  function updateTotalTime() {
+    const sum = state.steps.reduce((a,b)=>a+Number(b.duration),0);
+    totalTimeEl.textContent = `${Math.floor(sum/60)}m ${sum%60}s`;
+  }
+
+  // Guide execution
+  let guideStartTime = null;
+  let guideStepEnd = null;
+  let rafId = null;
+
+  function startGuide() {
+    state.running = true;
+    state.currentIndex = 0;
+    state.elapsed = 0;
+    guideOverlay.classList.remove('hidden');
+    document.body.classList.add('guide-open');
+    playPing();
+    startStep(0);
+  }
+
+  function startStep(index) {
+    if (index >= state.steps.length) {
+      // finished
+      stopGuide();
+      notify('Ritual finalizado', 2500);
+      return;
+    }
+    state.currentIndex = index;
+    const s = state.steps[index];
+    // UI update
+    activeTitle.textContent = s.title;
+    activeInstr.textContent = s.instr;
+    guideIcon.innerHTML = renderIconSVG(s.icon);
+    // background change according to focus
+    const focus = state.focus;
+    $('#guideStageLabel').textContent = `${index+1} / ${state.steps.length}`;
+    // Timer
+    guideStartTime = performance.now();
+    guideStepEnd = guideStartTime + s.duration * 1000;
+    // animate circular timer
+    setCircleProgress(1);
+    updateTimer(); // first tick
+    // play sound
+    if (state.pingSound && state.audioEnabled) playPing();
+    // possible micro-animations: add pulse proportional to duration for breath
+    updateActiveBackgroundForStep(s);
+    // start RAF loop
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function tick(now) {
+    if (!guideStepEnd) return;
+    const remaining = Math.max(0, Math.round((guideStepEnd - now)/1000));
+    const elapsedThis = Math.max(0, (now - guideStartTime)/1000);
+    const durationThis = Math.max(1, (guideStepEnd - guideStartTime)/1000);
+    const progress = Math.min(1, elapsedThis / durationThis);
+    timerNumber.textContent = formatTime(Math.ceil(durationThis - elapsedThis));
+    setCircleProgress(1 - progress);
+    // global progress
+    const totalSec = state.steps.reduce((a,b)=>a+b.duration,0);
+    const doneSec = state.steps.slice(0,state.currentIndex).reduce((a,b)=>a+b.duration,0) + elapsedThis;
+    globalProgress.style.width = `${Math.min(100,(doneSec/totalSec)*100)}%`;
+    if (now >= guideStepEnd - 5) { /* subtle */ }
+    if (now >= guideStepEnd - 10 && now >= guideStepEnd - 10 && state.pingSound && state.audioEnabled) {
+      // nothing
+    }
+    if (now >= guideStepEnd - 50) {
+      // nothing
+    }
+    if (now >= guideStepEnd) {
+      // step finished
+      if (state.pingSound && state.audioEnabled) playPing();
+      // move to next
+      startStep(state.currentIndex + 1);
+      return;
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function updateTimer() {
+    // used to reset display
+    const s = state.steps[state.currentIndex];
+    if (s) {
+      timerNumber.textContent = formatTime(s.duration);
+      setCircleProgress(1);
+    }
+  }
+
+  function setCircleProgress(ratio) {
+    // stroke-dasharray trick
+    const circle = timerFg;
+    const R = 50;
+    const C = 2 * Math.PI * R;
+    circle.style.strokeDasharray = C;
+    circle.style.strokeDashoffset = `${C * ratio}`;
+  }
+
+  function togglePause() {
+    if (!guideOverlay || guideOverlay.classList.contains('hidden')) return;
+    if (!state.running) return;
+    if (rafId) {
+      // pause
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      // compute remaining time of current step and store
+      const now = performance.now();
+      const remaining = guideStepEnd - now;
+      // store pausedRemaining in state
+      state.pausedRemaining = remaining;
+      pauseBtn.textContent = 'Reanudar';
+    } else {
+      // resume
+      const now = performance.now();
+      // recompute guideStartTime and guideStepEnd based on pausedRemaining
+      guideStartTime = now;
+      guideStepEnd = now + (state.pausedRemaining || 0);
+      state.pausedRemaining = null;
+      pauseBtn.textContent = 'Pausa';
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+
+  function skipStep() {
+    if (!state.running) return;
+    startStep(state.currentIndex + 1);
+  }
+
+  function restartGuide() {
+    if (!state.running) return;
+    startGuide();
+  }
+
+  function stopGuide() {
+    state.running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+    guideOverlay.classList.add('hidden');
+    document.body.classList.remove('guide-open');
+  }
+
+  // Simple sound ping via WebAudio
+  let audioCtx = null;
+  function playPing() {
+    if (!state.pingSound) return;
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(880, audioCtx.currentTime);
+      g.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.05, audioCtx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.start();
+      o.stop(audioCtx.currentTime + 0.22);
+    } catch (e) {
+      // WebAudio not available or suspended
+    }
+  }
+
+  // Visual change per step (background gradients etc.)
+  function updateActiveBackgroundForStep(step) {
+    const guideCard = document.querySelector('.guide-card');
+    const focus = state.focus;
+    const maps = {
+      mente: ['#7dd3fc','#60a5fa'],
+      cuerpo: ['#fca5a5','#fb923c'],
+      creatividad: ['#fbcfe8','#f472b6'],
+      pausa: ['#f3f4f6','#d1fae5']
+    };
+    const colors = maps[focus] || ['#e2e8f0','#c7d2fe'];
+    guideCard.style.background = `linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%)`;
+    // micro-animations: if breath, apply pulsate
+    if (step.icon === 'breath') {
+      guideIcon.classList.add('pulse');
+      setTimeout(()=> guideIcon.classList.remove('pulse'), Math.min(4000, step.duration*1000));
+    } else {
+      guideIcon.classList.remove('pulse');
+    }
+  }
+
+  // Export / clipboard
+  function copyRitual() {
+    const text = buildRitualText();
+    navigator.clipboard.writeText(text).then(()=> {
+      notify('Ritual copiado al portapapeles');
+    }).catch(()=> notify('No se pudo copiar'));
+  }
+
+  function buildRitualText() {
+    let out = `Ritual — ${state.totalMinutes} min — ${capitalize(state.focus)}\n\n`;
+    state.steps.forEach((s,i) => {
+      out += `${i+1}. ${s.title} — ${s.duration}s\n   ${s.instr}\n`;
+    });
+    return out;
+  }
+
+  function capitalize(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
+
+  // Generate SVG card and download
+  function downloadSVGCard() {
+    const width = 800;
+    const height = 400;
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--card-bg') || '#fff';
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '34,197,94';
+    const title = escapeXml(frontmatter.title);
+    const total = `${state.totalMinutes} min`;
+    let content = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+      <style>
+        .title{font-family:${getCssVar('--font-family-sans')};font-size:28px;fill:rgb(${accent});font-weight:700}
+        .note{font-family:${getCssVar('--font-family-sans')};font-size:14px;fill:currentColor}
+      </style>
+      <rect width="100%" height="100%" fill="${bg}" rx="16"/>
+      <text x="40" y="60" class="title">${title}</text>
+      <text x="40" y="92" class="note">Duración: ${total} · ${capitalize(state.focus)}</text>
+      `;
+    let y = 140;
+    state.steps.slice(0,6).forEach((s,i) => {
+      content += `<text x="56" y="${y}" class="note">${i+1}. ${escapeXml(s.title)} — ${s.duration}s</text>`;
+      y += 32;
+    });
+    content += `</svg>`;
+    const blob = new Blob([content], {type:'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ritual.svg';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    notify('Tarjeta descargada');
+  }
+
+  function escapeXml(s) {
+    return (s||'').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'" :'&apos;','"':'&quot;'}[c]));
+  }
+
+  function getCssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name) || 'Inter, system-ui';
+  }
+
+  // Share (native or fallback copy)
+  function tryShare() {
+    const text = buildRitualText();
+    if (navigator.share) {
+      navigator.share({title: frontmatter.title, text}).catch(()=> notify('Compartir cancelado'));
+    } else {
+      navigator.clipboard.writeText(text).then(()=> notify('Texto copiado para compartir'));
+    }
+  }
+
+  // Presets in localStorage (simple)
+  function saveFavorite() {
+    const data = {
+      totalMinutes: state.totalMinutes,
+      focus: state.focus,
+      intensity: state.intensity,
+      steps: state.steps
+    };
+    localStorage.setItem('ritual-fav', JSON.stringify(data));
+    notify('Favorito guardado');
+  }
+  function loadFavorite() {
+    const raw = localStorage.getItem('ritual-fav');
+    if (!raw) { notify('No hay favorito guardado'); return; }
+    try {
+      const d = JSON.parse(raw);
+      state.totalMinutes = d.totalMinutes || state.totalMinutes;
+      state.focus = d.focus || state.focus;
+      state.intensity = d.intensity || state.intensity;
+      state.steps = d.steps || state.steps;
+      // update UI selects
+      durationEl.value = state.totalMinutes;
+      durationValueEl.textContent = `${state.totalMinutes} min`;
+      chips.forEach(c => {
+        c.classList.toggle('active', c.dataset.focus === state.focus);
+        c.setAttribute('aria-pressed', c.dataset.focus === state.focus ? 'true':'false');
+      });
+      intensityBtns.forEach(b => {
+        b.classList.toggle('active', b.dataset.int === state.intensity);
+        b.setAttribute('aria-pressed', b.dataset.int === state.intensity ? 'true':'false');
+      });
+      renderSteps();
+      updateTotalTime();
+      notify('Favorito cargado');
+    } catch(e) {
+      notify('Error cargando favorito');
+    }
+  }
+
+  // Initialization
+  initUI();
+
+  // Expose for debugging
+  window._microRitual = { state, generateSequence, randomizeSequence };
+
+})();
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
+
+<style>
+/* === COMIENZA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+/* Variables obligatorios — asumimos provistos desde layout; definimos fallbacks */
+:root{
+  --app-bg: #0f172a;
+  --card-bg: #0b1220;
+  --text-color: #e6eef8;
+  --text-secondary: #a8b3c3;
+  --accent: 96,165,250; /* rgb(var(--accent)) */
+  --accent-secondary: 236,72,153;
+  --card-border: rgba(255,255,255,0.06);
+  --shadow-color: 0 6px 18px rgba(2,6,23,0.6);
+  --font-family-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  --font-family-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
+/* Global reset / layout */
+* {box-sizing: border-box}
+html,body,#app {height:100%}
+body {
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--text-color);
+  font-family: var(--font-family-sans);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  line-height:1.4;
+}
+
+/* Back link */
+.back-link {
+  display:inline-block;
+  margin: 1rem 1.25rem;
+  color: var(--text-secondary);
+  text-decoration:none;
+  font-size:0.95rem;
+}
+
+/* Container */
+.tool-container {
+  max-width:1100px;
+  margin: 0 auto 6rem;
+  padding: 0 1.25rem 4rem;
+}
+
+/* HERO */
+.hero {
+  position:relative;
+  margin: 1rem 0 2rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display:flex;
+  align-items:center;
+  gap:1.25rem;
+  overflow:hidden;
+  box-shadow: var(--shadow-color);
+}
+
+.hero-deco {
+  position:absolute;
+  inset:0;
+  opacity:.6;
+  pointer-events:none;
+  mix-blend-mode:screen;
+}
+
+.hero-svg { width:100%; height:100%; }
+
+.hero-content {
+  position:relative;
+  z-index:2;
+  padding:1rem 1.5rem;
+}
+
+.hero-title {
+  margin:0;
+  font-size:2rem;
+  color: rgb(var(--accent));
+  font-weight:800;
+  letter-spacing:-0.02em;
+  font-family: var(--font-family-sans);
+  text-shadow: 0 6px 18px rgba(0,0,0,0.4);
+}
+
+.hero-sub {
+  margin:0.25rem 0 0.5rem;
+  color: var(--text-secondary);
+  font-size:0.95rem;
+}
+
+.hero-meta {
+  display:flex;
+  gap:0.6rem;
+  align-items:center;
+  margin-top:0.6rem;
+}
+
+.studio-logo {
+  width:48px;
+  height:48px;
+  border-radius:0.5rem;
+  border:1px solid var(--card-border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+}
+
+/* Grid */
+.main-grid {
+  display:flex;
+  gap:1rem;
+  align-items:flex-start;
+}
+
+/* Panel */
+.panel {
+  flex:0 0 320px;
+  background: var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:0.75rem;
+  padding:0.9rem;
+  color:var(--text-color);
+  display:flex;
+  flex-direction:column;
+  gap:0.8rem;
+  box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+}
+
+.panel-section { padding:0.4rem 0 }
+
+.label { display:block; font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.4rem; }
+
+.duration-row { display:flex; gap:0.6rem; align-items:center; }
+.duration-row input[type="range"] { flex:1; accent-color: rgb(var(--accent)); }
+.duration-row output { min-width:56px; text-align:right; font-weight:600; color:var(--text-color); }
+
+.presets { display:flex; gap:0.5rem; margin-top:0.5rem; }
+.preset {
+  background:transparent;
+  border:1px solid var(--card-border);
+  padding:0.35rem 0.55rem;
+  border-radius:0.5rem;
+  color:var(--text-secondary);
+  cursor:pointer;
+}
+
+.chips { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.chip {
+  background:transparent;
+  border:1px solid var(--card-border);
+  padding:0.35rem 0.6rem;
+  border-radius:999px;
+  color:var(--text-color);
+  cursor:pointer;
+  transition:all .25s ease;
+}
+.chip.active { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.06); box-shadow: 0 8px 20px rgba(0,0,0,0.3) inset; }
+
+.intensity { display:flex; gap:0.5rem; margin-top:0.3rem; }
+.intensity-btn {
+  background:transparent;
+  border:1px solid var(--card-border);
+  padding:0.4rem 0.6rem;
+  border-radius:0.5rem;
+  cursor:pointer;
+}
+.intensity-btn.active { background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border-color: rgba(255,255,255,0.08); color: rgb(var(--accent)); }
+
+.row { display:flex; gap:0.6rem; align-items:center; }
+
+.btn {
+  font-family: var(--font-family-sans);
+  padding:0.5rem 0.8rem;
+  border-radius:0.6rem;
+  border:0;
+  cursor:pointer;
+  background: rgb(var(--accent));
+  color: #032;
+  font-weight:600;
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.btn:active { transform:translateY(1px) }
+.btn:hover { transform:translateY(-2px); box-shadow: var(--shadow-color) }
+
+.btn.primary { background: linear-gradient(90deg, rgb(var(--accent)), rgb(var(--accent-secondary))); color:white; }
+.btn.outline { background:transparent; border:1px solid var(--card-border); color:var(--text-color); }
+.btn.icon { background:transparent; padding:0.35rem 0.45rem; }
+
+.extras .small { color:var(--text-secondary); margin-left:0.4rem; font-size:0.9rem; }
+.save-presets { margin-top:0.6rem; }
+
+/* Editor */
+.editor {
+  flex:1;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  border:1px solid var(--card-border);
+  border-radius:0.75rem;
+  padding:1rem;
+  display:flex;
+  flex-direction:column;
+  gap:0.8rem;
+}
+
+.editor-header { display:flex; justify-content:space-between; align-items:center; }
+.section-title { margin:0; font-size:1.1rem; color:var(--text-color); }
+.editor-actions { display:flex; gap:0.8rem; align-items:center; }
+
+.compact-toggle { display:flex; gap:0.4rem; align-items:center; color:var(--text-secondary); }
+.timing-sum { display:flex; gap:0.5rem; align-items:center; color:var(--text-secondary); }
+
+.cards { display:flex; flex-direction:column; gap:0.6rem; overflow:auto; max-height:420px; padding-right:0.4rem; }
+
+.card {
+  display:flex;
+  gap:0.8rem;
+  align-items:flex-start;
+  background: var(--card-bg);
+  border:1px solid var(--card-border);
+  padding:0.6rem;
+  border-radius:0.6rem;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(2,6,23,0.6); }
+.card-left { width:56px; flex:0 0 56px; display:flex; align-items:center; justify-content:center; }
+.icon-wrap { width:48px; height:48px; display:flex; align-items:center; justify-content:center; color: rgb(var(--accent)); }
+
+.mini-icon { width:44px; height:44px; opacity:0.95; }
+
+.card-main { flex:1; min-width:0; }
+.card-row { display:flex; justify-content:space-between; align-items:center; gap:0.6rem; }
+.card-title { font-weight:700; font-size:1rem; outline:none; color:var(--text-color); }
+.card-duration { display:flex; align-items:center; gap:0.25rem; color:var(--text-secondary); }
+.dur-input { width:72px; padding:0.25rem 0.4rem; border-radius:0.4rem; border:1px solid var(--card-border); background:transparent; color:var(--text-color); }
+
+.card-instr { margin-top:0.35rem; color:var(--text-secondary); font-size:0.92rem; outline:none; }
+.card-instr.hidden { display:none; }
+
+.card-actions { display:flex; flex-direction:column; gap:0.3rem; align-items:center; }
+
+/* Editor controls */
+.editor-controls { display:flex; gap:0.6rem; align-items:center; margin-top:0.4rem; }
+.exports { display:flex; gap:0.6rem; align-items:center; margin-top:0.4rem; }
+.socials { margin-left:0.6rem; display:flex; gap:0.4rem; }
+
+/* Guide overlay */
+.overlay {
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: linear-gradient(180deg, rgba(2,6,23,0.6), rgba(2,6,23,0.85));
+  z-index:60;
+  transition:opacity .2s ease;
+}
+.overlay.hidden { display:none; opacity:0; pointer-events:none; }
+
+.guide-card {
+  width: min(760px, 92%);
+  background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius:0.9rem;
+  padding:1rem;
+  border:1px solid var(--card-border);
+  box-shadow: 0 30px 60px rgba(2,6,23,0.7);
+  color:var(--text-color);
+}
+
+.guide-header { display:flex; justify-content:space-between; align-items:center; }
+.guide-stage { font-size:0.95rem; color:var(--text-secondary); }
+
+/* Active step UI */
+.active-step { display:flex; flex-direction:column; gap:1rem; align-items:center; text-align:center; padding:1rem 0 0; }
+.step-icon { width:72px; height:72px; color:rgb(var(--accent)); display:flex; align-items:center; justify-content:center; border-radius:999px; }
+.step-icon.pulse { animation: pulseAnim linear infinite; }
+@keyframes pulseAnim { 0% { transform:scale(1); opacity:0.95 } 50% { transform:scale(1.08); opacity:1 } 100% { transform:scale(1); opacity:0.95 } }
+
+.timer-wrap { position:relative; width:140px; height:140px; display:flex; align-items:center; justify-content:center; }
+.timer-circle { width:140px; height:140px; transform:rotate(-90deg); }
+.timer-bg { fill:none; stroke:rgba(255,255,255,0.06); stroke-width:8; }
+.timer-fg { fill:none; stroke: rgb(var(--accent)); stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset .3s linear; }
+
+.timer-number { position:absolute; font-family: var(--font-family-mono); font-size:1.1rem; color:var(--text-color); }
+
+.progress-global { width:100%; height:8px; background:rgba(255,255,255,0.04); border-radius:999px; overflow:hidden; margin-top:0.6rem; }
+.progress-bar { height:100%; width:0%; background: linear-gradient(90deg, rgb(var(--accent)), rgb(var(--accent-secondary))); }
+
+.guide-controls { display:flex; gap:0.6rem; justify-content:center; margin-top:0.4rem; }
+
+/* Note */
+.note {
+  position:fixed;
+  right:1rem;
+  bottom:1rem;
+  background: var(--card-bg);
+  border:1px solid var(--card-border);
+  color:var(--text-color);
+  padding:0.6rem 0.9rem;
+  border-radius:0.6rem;
+  box-shadow: 0 12px 30px rgba(2,6,23,0.6);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .main-grid { flex-direction:column; }
+  .panel { order:2; width:100%; }
+  .editor { order:1; }
+  .hero { flex-direction:column; }
+}
+
+@media (max-width: 768px) {
+  .hero-title { font-size:1.5rem; }
+  .panel { padding:0.6rem; }
+  .card { padding:0.5rem; }
+  .timer-wrap { width:110px; height:110px; }
+}
+
+/* Focus-based theme overrides using data-focus on root */
+:root[data-focus="mente"] {
+  --accent: 96,165,250;
+  --accent-secondary: 99,102,241;
+}
+:root[data-focus="cuerpo"] {
+  --accent: 250,138,91;
+  --accent-secondary: 245,158,11;
+}
+:root[data-focus="creatividad"] {
+  --accent: 236,72,153;
+  --accent-secondary: 251,113,133;
+}
+:root[data-focus="pausa"] {
+  --accent: 148,163,184;
+  --accent-secondary: 203,213,225;
+}
+
+/* Accessibility focus styles */
+button:focus, .card-title:focus, .card-instr:focus, .dur-input:focus {
+  outline: 3px solid rgba(96,165,250,0.12);
+  outline-offset:2px;
+  border-radius:0.4rem;
+}
+
+/* small helpers */
+.muted { color:var(--text-secondary); font-size:0.85rem; }
+
+/* === TERMINA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+</style>
