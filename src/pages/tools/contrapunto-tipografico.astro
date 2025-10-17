@@ -1,0 +1,536 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página (serán reemplazados por los datos de la tarea)
+export const frontmatter = {
+  title: 'Contrapunto Tipográfico',
+  description: ``,
+  tags: ['tipografía', 'diseño', 'css', 'escala', 'visual']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  <!-- Construye aquí una interfaz HTML semántica y bien estructurada. -->
+  <!-- Puedes usar clases si lo deseas, pero el estilo principal irá en la etiqueta <style>. -->
+  <div class="tool-container">
+    <header class="tool-header">
+      <div class="title-block">
+        <h1>{frontmatter.title}</h1>
+        <p class="subtitle">Explora combinaciones de encabezado y cuerpo. Ajusta la escala tipográfica y copia las variables CSS.</p>
+      </div>
+      <div class="controls">
+        <div class="control card">
+          <label for="headerFont">Encabezado</label>
+          <select id="headerFont" aria-label="Fuente de encabezado">
+            <option value="'Playfair Display', serif">Playfair Display</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+            <option value="'Poppins', system-ui, -apple-system, sans-serif">Poppins</option>
+            <option value="'Bebas Neue', system-ui, -apple-system, sans-serif">Bebas Neue</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="var(--font-family-sans)">Inter (Sistema)</option>
+          </select>
+        </div>
+
+        <div class="control card">
+          <label for="bodyFont">Cuerpo</label>
+          <select id="bodyFont" aria-label="Fuente de cuerpo">
+            <option value="var(--font-family-sans)">Inter</option>
+            <option value="'Roboto', system-ui, -apple-system, sans-serif">Roboto</option>
+            <option value="'Source Sans Pro', system-ui, -apple-system, sans-serif">Source Sans Pro</option>
+            <option value="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace">IBM Plex Mono</option>
+            <option value="'Merriweather', serif">Merriweather (serif)</option>
+            <option value="Georgia, serif">Georgia</option>
+          </select>
+        </div>
+
+        <div class="control card scale-control">
+          <label for="scale">Escala tipográfica <span id="scaleValue">2.5:1</span></label>
+          <input id="scale" type="range" min="1.2" max="6" step="0.1" value="2.5" aria-label="Ajustar escala tipográfica">
+          <div id="suggestion" class="suggestion" role="button" title="Doble clic para fijar">Proporción ideal: <strong>3.5:1</strong></div>
+        </div>
+
+        <div class="control actions">
+          <button id="copyCss" class="btn">Copiar CSS</button>
+          <div id="copyFeedback" class="copy-feedback" aria-hidden="true">¡Copiado!</div>
+        </div>
+      </div>
+    </header>
+
+    <main class="preview-area card" id="preview" aria-live="polite" style="--ratio:2.5; --header-font: var(--font-family-sans); --body-font: var(--font-family-sans);">
+      <div class="preview-inner">
+        <h2 class="preview-title">El arte de la composición tipográfica</h2>
+        <p class="preview-body">
+          La escala entre encabezado y cuerpo define la jerarquía visual. Ajusta la relación para encontrar el tono apropiado:
+          desde elegante y audaz hasta contenido discreto y legible.
+        </p>
+      </div>
+    </main>
+
+    <section class="footer-note">
+      <div class="card note">
+        <strong>Momento mágico:</strong> mueve el slider para ver la sugerencia de proporción. Doble clic en la sugerencia para fijarla y realinear la vista con una micro-animación.
+      </div>
+    </section>
+  </div>
+  <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+</Layout>
+
+<script type="module">
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const headerSelect = document.getElementById('headerFont');
+const bodySelect = document.getElementById('bodyFont');
+const scaleInput = document.getElementById('scale');
+const scaleValueLabel = document.getElementById('scaleValue');
+const preview = document.getElementById('preview');
+const previewTitle = preview.querySelector('.preview-title');
+const previewBody = preview.querySelector('.preview-body');
+const suggestion = document.getElementById('suggestion');
+const copyBtn = document.getElementById('copyCss');
+const copyFeedback = document.getElementById('copyFeedback');
+
+let pinned = false;
+const idealRatio = 3.5; // valor sugerido
+let suggestionTimeout;
+
+// Utility: apply a smooth font-family swap by fading
+function swapFont(element, fontValue) {
+  element.style.transition = 'opacity 160ms ease';
+  element.style.opacity = '0';
+  // after fade out, change font and fade in
+  setTimeout(() => {
+    element.style.fontFamily = fontValue;
+    element.style.opacity = '1';
+  }, 170);
+}
+
+// Initialize fonts
+function applyFonts() {
+  const hFont = headerSelect.value;
+  const bFont = bodySelect.value;
+
+  // store as CSS vars on preview so CSS can reference them
+  preview.style.setProperty('--header-font', hFont);
+  preview.style.setProperty('--body-font', bFont);
+
+  // animate swap for smoothness
+  swapFont(previewTitle, hFont);
+  swapFont(previewBody, bFont);
+}
+
+function applyScale(ratio) {
+  // set numeric var; CSS uses calc(var(--ratio) * 1rem)
+  preview.style.setProperty('--ratio', ratio);
+  scaleValueLabel.textContent = `${parseFloat(ratio).toFixed(1)}:1`;
+}
+
+// Position suggestion bubble near slider thumb (basic approximation)
+function positionSuggestion() {
+  const rect = scaleInput.getBoundingClientRect();
+  const pct = (scaleInput.value - scaleInput.min) / (scaleInput.max - scaleInput.min);
+  const left = rect.left + pct * rect.width;
+  suggestion.style.left = `${left}px`;
+  suggestion.style.top = `${rect.top - 48}px`;
+}
+
+// Show suggestion briefly when moving slider
+scaleInput.addEventListener('input', (e) => {
+  const value = e.target.value;
+  applyScale(value);
+  // show suggestion if not pinned
+  if (!pinned) {
+    suggestion.classList.add('visible');
+    positionSuggestion();
+    clearTimeout(suggestionTimeout);
+    suggestionTimeout = setTimeout(() => {
+      if (!pinned) suggestion.classList.remove('visible');
+    }, 1800);
+  } else {
+    // if pinned, still show but fixed
+    suggestion.classList.add('visible','pinned');
+  }
+});
+
+// double click to pin/unpin suggestion
+suggestion.addEventListener('dblclick', () => {
+  pinned = !pinned;
+  if (pinned) {
+    suggestion.classList.add('pinned');
+    // align view to suggested ratio with micro-anim
+    applyScale(idealRatio);
+    scaleInput.value = idealRatio;
+    // micro contrast/transform animation
+    preview.classList.add('magic');
+    setTimeout(() => preview.classList.remove('magic'), 420);
+  } else {
+    suggestion.classList.remove('pinned');
+    suggestion.classList.remove('visible');
+  }
+});
+
+// click suggestion once: set the ratio but don't pin
+suggestion.addEventListener('click', () => {
+  if (!pinned) {
+    applyScale(idealRatio);
+    scaleInput.value = idealRatio;
+    suggestion.classList.add('visible');
+    clearTimeout(suggestionTimeout);
+    suggestionTimeout = setTimeout(() => {
+      if (!pinned) suggestion.classList.remove('visible');
+    }, 1000);
+    preview.classList.add('magic-small');
+    setTimeout(() => preview.classList.remove('magic-small'), 360);
+  }
+});
+
+// update fonts on change
+headerSelect.addEventListener('change', applyFonts);
+bodySelect.addEventListener('change', applyFonts);
+
+// initial application
+applyFonts();
+applyScale(scaleInput.value);
+
+// when window resizes, reposition suggestion if visible
+window.addEventListener('resize', () => {
+  if (suggestion.classList.contains('visible')) positionSuggestion();
+});
+
+// Copy CSS logic
+copyBtn.addEventListener('click', async () => {
+  const headerVal = headerSelect.value;
+  const bodyVal = bodySelect.value;
+  const ratioVal = parseFloat(scaleInput.value).toFixed(2);
+
+  const cssText = `:root {
+  --font-family-header: ${headerVal};
+  --font-family-body: ${bodyVal};
+  --scale-ratio: ${ratioVal};
+}
+
+/* Ejemplo de uso */
+h1 { font-family: var(--font-family-header); font-size: calc(var(--scale-ratio) * 1rem); }
+p  { font-family: var(--font-family-body); font-size: 1rem; }`;
+
+  try {
+    await navigator.clipboard.writeText(cssText);
+    // feedback
+    copyFeedback.setAttribute('aria-hidden','false');
+    copyFeedback.classList.add('visible');
+    setTimeout(() => {
+      copyFeedback.classList.remove('visible');
+      copyFeedback.setAttribute('aria-hidden','true');
+    }, 1200);
+  } catch (err) {
+    // fallback: select and prompt
+    console.error('Copy failed', err);
+    alert('No se pudo copiar automáticamente. Revisa permisos del portapapeles.');
+  }
+});
+
+// keyboard accessibility: allow Enter on suggestion to behave as click
+suggestion.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    suggestion.click();
+  }
+});
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
+
+<style>
+/* === COMIENZA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+/* Escribe aquí todo el CSS necesario para la página. */
+/* RECUERDA: Estás OBLIGADO a usar las variables CSS globales para colores, fuentes y fondos. */
+/* Asegúrate de que el diseño sea responsive usando media queries. */
+
+:root {
+  /* Estilos por defecto si el layout no define variables (suaviza visualización en entornos de prueba) */
+  --app-bg: #0f1724;
+  --card-bg: #0b1220;
+  --text-color: #e6eef8;
+  --text-secondary: #a9b6c8;
+  --accent: 40, 200, 255;
+  --accent-secondary: 255, 150, 120;
+  --card-border: rgba(255,255,255,0.06);
+  --shadow-color: 0 6px 18px rgba(2,6,23,0.6);
+  --font-family-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  --font-family-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+}
+
+/* Layout general */
+.tool-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 1rem;
+  font-family: var(--font-family-sans);
+  color: var(--text-color);
+  background: transparent;
+}
+
+/* Back link */
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+/* Header: title + controls */
+.tool-header {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.title-block h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  color: rgb(var(--accent));
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* Controls column */
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Cards and controls */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  box-shadow: var(--shadow-color);
+}
+
+.control label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.control select,
+.control input[type="range"] {
+  width: 100%;
+  font-family: var(--font-family-sans);
+  font-size: 0.95rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--card-border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  color: var(--text-color);
+  outline: none;
+}
+
+/* Range styling */
+.scale-control input[type="range"] {
+  -webkit-appearance: none;
+  height: 14px;
+  background: transparent;
+  margin-top: 0.25rem;
+}
+.scale-control input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  background: linear-gradient(90deg, rgba(var(--accent),0.18), rgba(var(--accent-secondary),0.08));
+  border-radius: 999px;
+}
+.scale-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: rgb(var(--accent));
+  border-radius: 50%;
+  border: 3px solid var(--card-bg);
+  margin-top: -5px;
+  box-shadow: 0 4px 10px rgba(2,6,23,0.5);
+}
+
+/* Suggestion bubble */
+.suggestion {
+  position: absolute;
+  transform: translate(-50%, -6px) scale(.95);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--card-border);
+  color: var(--text-color);
+  padding: 0.45rem 0.6rem;
+  font-size: 0.85rem;
+  border-radius: 0.5rem;
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(.2,.9,.3,1), box-shadow 160ms;
+  box-shadow: 0 6px 20px rgba(2,6,23,0.55);
+  white-space: nowrap;
+  z-index: 30;
+  user-select: none;
+}
+.suggestion.visible {
+  opacity: 1;
+  transform: translate(-50%, -12px) scale(1);
+}
+.suggestion.pinned {
+  border-color: rgba(var(--accent),0.32);
+  box-shadow: 0 8px 30px rgba(var(--accent),0.12);
+}
+
+/* Actions row */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+.btn {
+  background: linear-gradient(180deg, rgba(var(--accent),1), rgba(var(--accent-secondary),0.85));
+  color: #062333;
+  border: none;
+  padding: 0.55rem 0.9rem;
+  border-radius: 0.55rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(var(--accent),0.12);
+}
+
+/* Copy feedback */
+.copy-feedback {
+  margin-left: 0.5rem;
+  color: var(--text-color);
+  font-size: 0.85rem;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 180ms, transform 180ms;
+}
+.copy-feedback.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Preview area */
+.preview-area {
+  margin-top: 1rem;
+  padding: 2rem;
+  min-height: 42vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Inner area that gets the typographic styling */
+.preview-inner {
+  max-width: 72ch;
+  text-align: left;
+}
+
+/* Use CSS variables for fonts and scale */
+.preview-title {
+  margin: 0 0 0.6rem 0;
+  color: rgb(var(--accent));
+  font-family: var(--header-font);
+  /* header size scales with the ratio var */
+  font-size: calc(var(--ratio) * 1rem);
+  line-height: 1.05;
+  transition: font-size 320ms cubic-bezier(.2,.9,.3,1), color 220ms;
+  -webkit-font-smoothing: antialiased;
+}
+
+.preview-body {
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--body-font);
+  font-size: 1rem;
+  line-height: 1.6;
+  transition: font-size 320ms cubic-bezier(.2,.9,.3,1), color 220ms, opacity 180ms;
+}
+
+/* Micro animation when suggestion pinned/applied */
+.preview.magic {
+  transform-origin: center;
+  animation: magicPop 420ms cubic-bezier(.2,.9,.3,1);
+}
+@keyframes magicPop {
+  0% { transform: scale(1); filter: contrast(1); box-shadow: 0 6px 18px rgba(2,6,23,0.0); }
+  30% { transform: scale(1.01); filter: contrast(1.06); box-shadow: 0 12px 30px rgba(2,6,23,0.12); }
+  100% { transform: scale(1); filter: contrast(1); box-shadow: 0 6px 18px rgba(2,6,23,0.0); }
+}
+.preview.magic-small {
+  transform-origin: center;
+  animation: magicSmall 360ms ease-out;
+}
+@keyframes magicSmall {
+  0% { transform: translateY(0); filter: none; }
+  50% { transform: translateY(-6px); filter: saturate(1.03); }
+  100% { transform: translateY(0); filter: none; }
+}
+
+/* Footer note */
+.footer-note {
+  margin-top: 1rem;
+}
+.note {
+  display: inline-block;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* Responsive layout */
+@media (max-width: 980px) {
+  .tool-header {
+    grid-template-columns: 1fr;
+  }
+  .controls {
+    flex-direction: row;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .controls .control {
+    flex: 1 1 45%;
+  }
+  .actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .tool-container {
+    padding: 0.75rem;
+  }
+  .preview-area {
+    padding: 1.25rem;
+    min-height: 36vh;
+  }
+  .controls .control {
+    flex: 1 1 100%;
+  }
+  .suggestion {
+    display: none; /* hide floating suggestion on very small screens to avoid overlay issues */
+  }
+}
+
+/* Accessibility focus styles */
+select:focus, input[type="range"]:focus, .btn:focus, .suggestion:focus {
+  outline: 2px solid rgba(var(--accent),0.18);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+/* === TERMINA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+</style>
