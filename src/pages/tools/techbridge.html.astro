@@ -1,0 +1,122 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'TechBridge: Conexión entre Startups y Talentosos',
+  description: `Como fundador de una startup tecnológica, quiero una landing page que muestre mi propuesta de valor y me conecte con desarrolladores y diseñadores talentosos, para poder formar un equipo ideal rápidamente y sin complicaciones. La página debe presentar de manera clara la misión de la startup, oportunidades de empleo y la cultura organizacional a través de testimonios e imágenes.`,
+  tags: ['startup', 'tecnología', 'contratación', 'talento', 'oportunidades']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    
+    <div class="header">
+      <img src="/path/to/logo.png" alt="Logo de la Startup" />
+      <nav>
+        <ul>
+          <li><a href="#oportunidades">Oportunidades</a></li>
+          <li><a href="#testimonios">Testimonios</a></li>
+          <li><a href="#contacto">Contacto</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <section class="presentation">
+      <h2>Nuestra Misión</h2>
+      <p>En TechBridge, conectamos startups emergentes con talentos excepcionales para crear equipos que transforman ideas en realidades.</p>
+    </section>
+
+    <div class="opportunities" id="oportunidades">
+      <h2>Oportunidades</h2>
+      <ul class="results-list">
+        <li class="opportunity-item">
+          <h3>Desarrollador Frontend</h3>
+          <p>Buscamos un desarrollador apasionado por crear interfaces intuitivas y efectivas.</p>
+          <button class="btn btn-primary">Aplicar</button>
+        </li>
+        <li class="opportunity-item">
+          <h3>Diseñador UX/UI</h3>
+          <p>Únete a nuestro equipo y ayuda a dar forma a la experiencia de usuario de nuestros productos.</p>
+          <button class="btn btn-primary">Aplicar</button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="testimonials" id="testimonios">
+      <h2>Testimonios</h2>
+      <div class="testimonial-item">
+        <p>"Trabajar en TechBridge ha sido una experiencia transformadora. ¡El ambiente es increíble!" - Juan, Ex-empleado</p>
+      </div>
+      <div class="testimonial-item">
+        <p>"Aquí no solo trabajamos, creamos y evolucionamos juntos." - Marta, Desarrolladora</p>
+      </div>
+    </div>
+
+    <div class="gallery">
+      <h2>Galería</h2>
+      <img src="/path/to/image1.jpg" alt="Ambiente de Trabajo" />
+      <img src="/path/to/image2.jpg" alt="Evento de Equipo" />
+    </div>
+
+    <div class="form-container" id="contacto">
+      <h2>Contáctanos</h2>
+      <form id="contact-form">
+        <div class="input-group">
+          <label for="name">Nombre:</label>
+          <input type="text" id="name" class="input-field" required />
+        </div>
+        <div class="input-group">
+          <label for="email">Correo Electrónico:</label>
+          <input type="email" id="email" class="input-field" required />
+        </div>
+        <div class="input-group">
+          <label for="message">Mensaje:</label>
+          <textarea id="message" class="input-field" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Enviar</button>
+      </form>
+      <div id="feedback-alert" class="alert alert-success" role="alert" style="display: none;">
+        ¡Tu mensaje ha sido enviado!
+      </div>
+    </div>
+
+    <footer>
+      <p>Síguenos en nuestras redes sociales</p>
+      <ul>
+        <li><a href="https://twitter.com/techbridge">Twitter</a></li>
+        <li><a href="https://linkedin.com/company/techbridge">LinkedIn</a></li>
+      </ul>
+    </footer>
+    
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const alertBox = document.getElementById('feedback-alert');
+const contactForm = document.getElementById('contact-form');
+
+contactForm.addEventListener('submit', (event) => {
+  event.preventDefault(); // Evitar el envío de formulario por defecto
+
+  // Aquí puedes agregar lógica para enviar información a un servidor si es necesario
+  
+  alertBox.textContent = '¡Tu mensaje ha sido enviado!';
+  alertBox.style.display = 'block';
+  
+  setTimeout(() => { 
+    alertBox.style.display = 'none'; 
+  }, 3000);
+});
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
