@@ -1,0 +1,165 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página (serán reemplazados por los datos de la tarea)
+export const frontmatter = {
+  title: 'Sabores del Mundo',
+  description: '',
+  tags: ['restaurante', 'gastronomía', 'menú interactivo', 'platillos', 'experiencia culinaria']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  <div class="tool-container">
+    <header class="hero">
+      <h1>{frontmatter.title}</h1>
+      <img src="/path/to/logo.png" alt="Logotipo del restaurante" class="hero-logo" />
+    </header>
+    
+    <section class="menu-section">
+      <h2>Menú</h2>
+      <div class="menu-item">
+        <h3 class="menu-item-title">Platillo Exquisito</h3>
+        <button class="expand-button">Ver más</button>
+        <div class="menu-item-details">
+          <p><strong>Origen:</strong> Italia</p>
+          <p><strong>Ingredientes:</strong> Tomate, Albahaca, Mozzarella</p>
+          <p><strong>Recomendaciones de maridaje:</strong> Vino Blanco</p>
+        </div>
+      </div>
+      <!-- Añadir más platillos como elementos aquí -->
+    </section>
+    
+    <section class="reservation">
+      <button class="reserve-button">Reservar mesa</button>
+    </section>
+    
+    <section class="testimonials">
+      <h2>Testimonios</h2>
+      <div class="testimonial">
+        <p>"Un viaje culinario excepcional. ¡Volveré!" - Cliente satisfecho</p>
+      </div>
+      <!-- Añadir más testimonios aquí -->
+    </section>
+  </div>
+  <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.querySelectorAll('.expand-button').forEach(button => {
+  button.addEventListener('click', () => {
+    const details = button.nextElementSibling;
+    details.classList.toggle('visible');
+    button.textContent = details.classList.contains('visible') ? 'Ver menos' : 'Ver más';
+  });
+});
+
+document.querySelector('.reserve-button').addEventListener('click', () => {
+  window.location.href = '/reservacion'; // Asegúrate de que el enlace sea correcto
+});
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
+
+<style>
+/* === COMIENZA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+.tool-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.hero {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--card-border);
+  padding: 4rem 1rem;
+  text-align: center;
+}
+
+.hero-logo {
+  max-width: 200px;
+  margin: 1.5rem auto;
+}
+
+.menu-section {
+  margin: 2rem 0;
+}
+
+.menu-item {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  margin: 1rem 0;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.menu-item-title {
+  color: rgb(var(--accent));
+  font-family: var(--font-family-sans);
+  font-size: 1.5rem;
+}
+
+.expand-button {
+  background-color: rgb(var(--accent));
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.menu-item-details {
+  display: none;
+  margin-top: 1rem;
+}
+
+.menu-item-details.visible {
+  display: block;
+}
+
+.reserve-button {
+  background-color: rgb(var(--accent-secondary));
+  border: none;
+  color: #fff;
+  padding: 1rem 2rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.testimonials {
+  margin: 2rem 0;
+}
+
+.testimonial {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+/* Diseño responsive */
+@media (max-width: 768px) {
+  .tool-container {
+    padding: 0.5rem;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .menu-item-title {
+    font-size: 1.2rem;
+  }
+
+  .reserve-button, .expand-button {
+    width: 100%;
+  }
+}
+/* === TERMINA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+</style>
