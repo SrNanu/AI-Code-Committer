@@ -204,6 +204,85 @@ textarea:focus {
 }
 
 /* ============================================= */
+/* --- COMPONENTES AVANZADOS --- */
+/* ============================================= */
+
+/* --- Tarjetas (Cards) --- */
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px var(--shadow-color);
+}
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.card-content {
+  color: var(--text-secondary);
+}
+.card-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* --- Alertas / Feedback --- */
+.alert {
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-weight: 600;
+  display: none; /* Oculto por defecto */
+}
+.alert-success {
+  background-color: rgba(45, 211, 111, 0.1);
+  border: 1px solid rgba(45, 211, 111, 0.3);
+  color: #2dd36f;
+}
+.alert-error {
+  background-color: rgba(235, 68, 90, 0.1);
+  border: 1px solid rgba(235, 68, 90, 0.3);
+  color: #eb445a;
+}
+
+/* --- Estilos para Sliders (Range Inputs) --- */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: rgb(var(--accent));
+  cursor: pointer;
+  border-radius: 50%;
+  border: 2px solid var(--app-bg);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: rgb(var(--accent));
+  cursor: pointer;
+  border-radius: 50%;
+  border: 2px solid var(--app-bg);
+}
+
+/* ============================================= */
 /* --- ANIMACIONES --- */
 /* ============================================= */
 @keyframes fade-in {
