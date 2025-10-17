@@ -1,0 +1,81 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Simulador de Conversaciones Difíciles',
+  description: `Como profesional que enfrenta situaciones de comunicación complejas, quiero una herramienta que simule conversaciones difíciles, permitiéndome practicar mis respuestas y recibir retroalimentación sobre mi desempeño, para mejorar mis habilidades de comunicación y manejar mejor estas situaciones en la vida real.`,
+  tags: ['comunicación', 'simulador', 'habilidades', 'práctica', 'feedback']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="conversation-type">Selecciona el tipo de conversación:</label>
+          <select id="conversation-type" class="input-field">
+            <option value="despido">Despido</option>
+            <option value="negociacion">Negociación</option>
+            <option value="conflicto">Conflicto</option>
+          </select>
+        </div>
+        
+        <div class="input-group">
+          <label for="user-response">Tu respuesta:</label>
+          <textarea id="user-response" class="input-field" rows="4"></textarea>
+        </div>
+        
+        <button id="start-simulation" class="btn btn-primary">Iniciar Simulación</button>
+        
+        <div id="feedback-alert" class="alert alert-success" role="alert" style="display:none;">
+          ¡Respuesta enviada!
+        </div>
+      </div>
+
+      <div class="results-container">
+        <div class="dialog-area" id="dialog-area">
+          <h4>Diálogo Simulado:</h4>
+          <p id="simulated-dialog">Selecciona un tipo de conversación y comienza la simulación.</p>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+
+const startSimulationBtn = document.getElementById('start-simulation');
+const dialogArea = document.getElementById('dialog-area');
+const simulatedDialog = document.getElementById('simulated-dialog');
+const feedbackAlert = document.getElementById('feedback-alert');
+
+const conversations = {
+  despido: "Lo siento, pero tu desempeño no ha alcanzado nuestras expectativas...",
+  negociacion: "Entiendo tu punto, pero debemos encontrar un término medio...",
+  conflicto: "Creo que deberíamos hablar sobre lo que ha estado sucediendo..."
+};
+
+startSimulationBtn.addEventListener('click', () => {
+  const conversationType = document.getElementById('conversation-type').value;
+  const userResponse = document.getElementById('user-response').value;
+
+  simulatedDialog.textContent = conversations[conversationType];
+
+  // Simulación de feedback
+  feedbackAlert.textContent = '¡Respuesta enviada!';
+  feedbackAlert.style.display = 'block';
+  setTimeout(() => { feedbackAlert.style.display = 'none'; }, 3000);
+});
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
