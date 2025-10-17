@@ -1,0 +1,73 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Generador de Desafíos de Productividad',
+  description: `Como profesional que busca mejorar su productividad, quiero una herramienta que me proponga desafíos diarios personalizados basados en mis objetivos y hábitos actuales, para mantenerme motivado y enfocado en mis metas.`,
+  tags: ['productividad', 'desafíos', 'motivación', 'hábitos', 'auto-mejora']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="tool-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="personal-goals">Objetivos Personales:</label>
+          <input type="text" id="personal-goals" class="input-field" placeholder="Ej. leer más, hacer ejercicio...">
+        </div>
+        <div class="input-group">
+          <label for="challenge-duration">Duración del Desafío:</label>
+          <select id="challenge-duration" class="input-field">
+            <option value="1 día">1 día</option>
+            <option value="3 días">3 días</option>
+            <option value="1 semana">1 semana</option>
+          </select>
+        </div>
+        <button id="generate-challenge" class="btn btn-primary">Generar Desafío</button>
+      </div>
+      <div class="results-container">
+        <div class="summary" id="challenge-output" style="display: none;">
+          <h4 id="challenge-title"></h4>
+          <p id="challenge-description"></p>
+          <button id="complete-challenge" class="btn btn-primary" style="display: none;">Marcar como Completado</button>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+document.getElementById('generate-challenge').addEventListener('click', function() {
+  const goals = document.getElementById('personal-goals').value;
+  const duration = document.getElementById('challenge-duration').value;
+
+  if (goals) {
+    const challengeTitle = `¡Desafío de Productividad por ${duration}!`;
+    const challengeDescription = `Tu desafío es: ${goals}. ¡A por ello!`;
+    
+    document.getElementById('challenge-title').textContent = challengeTitle;
+    document.getElementById('challenge-description').textContent = challengeDescription;
+    document.getElementById('challenge-output').style.display = 'block';
+    document.getElementById('complete-challenge').style.display = 'inline-block';
+  } else {
+    alert('Por favor, ingresa tus objetivos personales.');
+  }
+});
+
+document.getElementById('complete-challenge').addEventListener('click', function() {
+  this.textContent = 'Desafío Completado!';
+  this.style.backgroundColor = 'green';
+});
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
