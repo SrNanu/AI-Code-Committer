@@ -1,0 +1,66 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Calculadora de Espacios de Trabajo Virtual',
+  description: `Como trabajador remoto, quiero calcular el espacio de trabajo virtual necesario según mis herramientas y materiales, para optimizar mi entorno de trabajo y aumentar mi productividad.`,
+  tags: ['espacio', 'trabajo', 'productividad', 'remoto', 'organización']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="tools-input">Número de herramientas:</label>
+          <input type="number" id="tools-input" class="input-field" placeholder="Ingrese el número de herramientas" />
+        </div>
+        <div class="input-group">
+          <label for="materials-input">Número de materiales:</label>
+          <input type="number" id="materials-input" class="input-field" placeholder="Ingrese el número de materiales" />
+        </div>
+        <button class="btn btn-primary" id="calculate-btn">Calcular</button>
+      </div>
+
+      <div class="results-container">
+        <div class="summary">
+          <h2>Resultado</h2>
+          <div class="summary-item">
+            <h4>Total de elementos necesarios:</h4>
+            <p id="resultado">0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+const toolsInput = document.getElementById('tools-input');
+const materialsInput = document.getElementById('materials-input');
+const resultadoDisplay = document.getElementById('resultado');
+
+// Función para actualizar el resultado
+function updateResult() {
+  const toolsCount = parseInt(toolsInput.value) || 0;
+  const materialsCount = parseInt(materialsInput.value) || 0;
+  const total = toolsCount + materialsCount;
+  resultadoDisplay.textContent = total;
+}
+
+// Añadir eventos de entrada para actualizar en tiempo real
+toolsInput.addEventListener('input', updateResult);
+materialsInput.addEventListener('input', updateResult);
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
