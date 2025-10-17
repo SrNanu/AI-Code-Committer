@@ -1,0 +1,177 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página (serán reemplazados por los datos de la tarea)
+export const frontmatter = {
+  title: 'Sabor de Casa',
+  description: 'Donde la comida casera cobra vida con cada bocado.',
+  tags: ['restaurante', 'comida', 'menú', 'historia', 'platillos']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  <div class="hero">
+    <h1 class="hero-title">{frontmatter.title}</h1>
+    <p class="hero-slogan">La autenticidad de la cocina en cada plato.</p>
+  </div>
+  
+  <section class="about-section">
+    <h2>Sobre Nosotros</h2>
+    <p>En 'Sabor de Casa', creemos que la buena comida es más que solo una necesidad; es una experiencia que queremos compartir contigo. Nuestra historia se centra en ofrecer platos que evocan recuerdos entrañables, preparándolos con ingredientes frescos y amor.</p>
+  </section>
+
+  <section class="gallery-section">
+    <h2>Galería</h2>
+    <div class="gallery">
+      <img src="https://placehold.co/300x200?text=Plato+1" alt="Plato 1">
+      <img src="https://placehold.co/300x200?text=Plato+2" alt="Plato 2">
+      <img src="https://placehold.co/300x200?text=Plato+3" alt="Plato 3">
+      <img src="https://placehold.co/300x200?text=Interior+1" alt="Interior 1">
+      <img src="https://placehold.co/300x200?text=Interior+2" alt="Interior 2">
+    </div>
+  </section>
+
+  <section class="menu-section">
+    <h2>Menú Destacado</h2>
+    <div class="menu-items">
+      <div class="menu-item">
+        <h3>Plato Estrella</h3>
+        <p>Una deliciosa mezcla de sabores que se derriten en tu boca.</p>
+        <span class="price">$12.99</span>
+      </div>
+      <div class="menu-item">
+        <h3>Sopa de Temporada</h3>
+        <p>Hecha con ingredientes frescos de la granja, perfecta para cualquier ocasión.</p>
+        <span class="price">$8.99</span>
+      </div>
+      <div class="menu-item">
+        <h3>Postre de Chocolate</h3>
+        <p>Una explosión de chocolate que no querrás perderte.</p>
+        <span class="price">$6.99</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="testimonials-section">
+    <h2>Testimonios</h2>
+    <blockquote class="testimonial">
+      "La experiencia fue maravillosa, cada bocado me recordó a casa." - Cliente Satisfecho
+    </blockquote>
+    <blockquote class="testimonial">
+      "El ambiente y la comida son inigualables. Definitivamente volveré." - Cliente Satisfecho
+    </blockquote>
+  </section>
+
+  <div class="cta-container">
+    <a href="#reservas" class="cta-button">Hacer una Reserva</a>
+  </div>
+  <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+// Actualmente no se requiere funcionalidad adicional, pero puedes agregar interactividad si es necesario.
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
+
+<style>
+/* === COMIENZA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+
+:root {
+  --warm-color: #ffcc99; /* Un color cálido para el fondo */
+}
+
+.hero {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--card-border);
+  padding: 4rem 1rem;
+  text-align: center;
+}
+
+.hero-title {
+  color: rgb(var(--accent));
+  font-family: var(--font-family-sans);
+  font-size: 3rem;
+}
+
+.hero-slogan {
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+}
+
+.about-section, .menu-section, .testimonials-section {
+  padding: 2rem 1rem;
+  background-color: var(--app-bg);
+}
+
+.gallery-section {
+  padding: 2rem 1rem;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.menu-item {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.price {
+  font-weight: bold;
+  color: rgb(var(--accent));
+}
+
+.testimonial {
+  background-color: var(--card-bg);
+  padding: 1rem;
+  border-left: 5px solid rgb(var(--accent));
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.cta-container {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.cta-button {
+  background-color: rgb(var(--accent));
+  color: var(--text-color);
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-family: var(--font-family-sans);
+  font-size: 1.25rem;
+  transition: background-color 0.3s;
+}
+
+.cta-button:hover {
+  background-color: rgb(var(--accent-secondary));
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  .hero-slogan {
+    font-size: 1.2rem;
+  }
+}
+
+/* === TERMINA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+</style>
