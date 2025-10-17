@@ -1,0 +1,72 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Creator Landing Vibe',
+  description: `Como fundador de una startup tecnológica, quiero una herramienta que me ayude a crear y personalizar mi landing page sin necesidad de conocimientos técnicos, utilizando una serie de plantillas adaptativas que se ajusten a la estética de mi marca. Idealmente, la herramienta debería incluir una vista previa en tiempo real donde pueda ver cómo se verá la página en diferentes dispositivos. También necesito la opción de agregar formularios de contacto y botones de llamada a la acción, así como optimizaciones SEO automáticas para asegurarme de que mi landing page sea efectiva en la captación de leads.`,
+  tags: ['landing page', 'startup', 'creación de páginas', 'personalización', 'visualización en tiempo real', 'formularios', 'SEO']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <div class="tool-container">
+    <h1>{frontmatter.title}</h1>
+    <p>{frontmatter.description}</p>
+    
+    <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+    <div class="calculator-wrapper">
+      <div class="form-container">
+        <div class="input-group">
+          <label for="template-select">Selecciona una plantilla:</label>
+          <select id="template-select" class="input-field">
+            <option value="tech-startup">Startup Tecnológica</option>
+            <option value="ecommerce">E-commerce</option>
+            <option value="blog">Blog</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label for="cta-text">Texto del Botón CTA:</label>
+          <input type="text" id="cta-text" class="input-field" placeholder="Ingresa texto para el botón" />
+        </div>
+
+        <div class="input-group">
+          <label for="contact-email">Email de Contacto:</label>
+          <input type="email" id="contact-email" class="input-field" placeholder="email@example.com" />
+        </div>
+
+        <button id="generate-preview" class="btn btn-primary">Generar Vista Previa</button>
+      </div>
+
+      <div class="results-container">
+        <div class="summary" id="preview-container">
+          <h2>Vista Previa</h2>
+          <div class="prose" id="preview"></div>
+        </div>
+      </div>
+    </div>
+    <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  </div>
+</Layout>
+
+<script>
+  // === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+  document.getElementById('generate-preview').addEventListener('click', () => {
+    const template = document.getElementById('template-select').value;
+    const ctaText = document.getElementById('cta-text').value;
+    const contactEmail = document.getElementById('contact-email').value;
+
+    const previewArea = document.getElementById('preview');
+    previewArea.innerHTML = `
+      <div class="card">
+        <h4 class="card-title">Template: ${template}</h4>
+        <p class="card-content">Botón CTA: <strong>${ctaText}</strong></p>
+        <p class="card-content">Email de contacto: <strong>${contactEmail}</strong></p>
+      </div>
+    `;
+  });
+  // === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
