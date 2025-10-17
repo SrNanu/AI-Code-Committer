@@ -1,0 +1,830 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página (serán reemplazados por los datos de la tarea)
+export const frontmatter = {
+  title: 'Reflejos de Proyectos',
+  description: ``,
+  tags: ['proyectos', 'visualización', 'gestión', 'productividad', 'gráfico']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  <!-- Construye aquí una interfaz HTML semántica y bien estructurada. -->
+  <!-- Puedes usar clases si lo deseas, pero el estilo principal irá en la etiqueta <style>. -->
+  <div class="tool-container">
+    <header class="hero">
+      <div class="hero-left">
+        <h1 class="hero-title">{frontmatter.title}</h1>
+        <p class="hero-sub">Crea y ajusta líneas de tiempo para múltiples proyectos. Arrastra en el gráfico para mover o cambiar fechas. Guarda tu diseño como imagen.</p>
+      </div>
+      <div class="hero-actions">
+        <button id="clearBtn" class="btn ghost">Recargar</button>
+        <button id="exportBtn" class="btn primary">Guardar como imagen</button>
+      </div>
+    </header>
+
+    <section class="controls">
+      <form id="projectForm" class="card form-card" onsubmit="return false;">
+        <div class="form-row">
+          <label for="name">Nombre del proyecto</label>
+          <input id="name" type="text" placeholder="Ej. Lanzamiento Web" required>
+        </div>
+
+        <div class="form-row two">
+          <div>
+            <label for="start">Fecha inicio</label>
+            <input id="start" type="date" required>
+          </div>
+          <div>
+            <label for="end">Fecha fin</label>
+            <input id="end" type="date" required>
+          </div>
+        </div>
+
+        <div class="form-row two">
+          <div>
+            <label for="color">Color</label>
+            <input id="color" type="color" value="#3b82f6">
+          </div>
+          <div>
+            <label for="style">Estilo</label>
+            <select id="style">
+              <option value="solid">Sólido</option>
+              <option value="dashed">Discontinuo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row actions-row">
+          <button id="addBtn" class="btn primary">Agregar al gráfico</button>
+          <button id="addAndSelectBtn" class="btn outline">Agregar y seleccionar</button>
+        </div>
+      </form>
+
+      <aside class="card projects-list" id="projectsList" aria-live="polite">
+        <h3>Proyectos</h3>
+        <div id="itemsContainer" class="items"></div>
+        <p class="hint">Haz clic en un proyecto para seleccionarlo y editar color/estilo. Usa los botones para eliminar.</p>
+      </aside>
+    </section>
+
+    <section class="canvas-wrap card">
+      <div class="canvas-header">
+        <strong>Gráfico</strong>
+        <span class="canvas-hint">Arrastra barras para mover; arrastra extremos para ajustar fechas.</span>
+      </div>
+      <div class="canvas-area">
+        <canvas id="timelineCanvas" width="1200" height="400"></canvas>
+      </div>
+    </section>
+
+    <footer class="legend">
+      <div class="legend-note">Consejo: usa el botón "Guardar como imagen" para descargar una plantilla PNG. El gráfico es interactivo y responsive.</div>
+      <div class="credit"><img src="https://placehold.co/40x40?text=P" alt="Placeholder logo"> <small>Reflejos de Proyectos</small></div>
+    </footer>
+  </div>
+  <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+
+/* Modelo de datos */
+let projects = [];
+
+/* Elementos */
+const nameInput = document.getElementById('name');
+const startInput = document.getElementById('start');
+const endInput = document.getElementById('end');
+const colorInput = document.getElementById('color');
+const styleInput = document.getElementById('style');
+const addBtn = document.getElementById('addBtn');
+const addAndSelectBtn = document.getElementById('addAndSelectBtn');
+const clearBtn = document.getElementById('clearBtn');
+const exportBtn = document.getElementById('exportBtn');
+const itemsContainer = document.getElementById('itemsContainer');
+
+const canvas = document.getElementById('timelineCanvas');
+const ctx = canvas.getContext('2d');
+
+let dpr = Math.max(1, window.devicePixelRatio || 1);
+
+/* Timeline view settings */
+const padding = { left: 80, right: 20, top: 40, bottom: 40 };
+let viewStart = null;
+let viewEnd = null;
+
+/* Drag state */
+let dragState = null; // { type: 'move' | 'start' | 'end', idx, startX, origStart, origEnd }
+
+/* Utility */
+function todayISO() {
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+function addDaysISO(iso, days) {
+  const d = new Date(iso + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0,10);
+}
+
+/* Init default dates */
+startInput.value = todayISO();
+endInput.value = addDaysISO(startInput.value, 7);
+
+/* Add project */
+function addProject({name, start, end, color, style}) {
+  const idx = projects.length;
+  const y = idx * 48; // will recalc for layout
+  projects.push({
+    id: Date.now() + Math.random(),
+    name,
+    start: new Date(start + 'T00:00:00'),
+    end: new Date(end + 'T00:00:00'),
+    color,
+    style,
+    y
+  });
+  refreshViewRange();
+  render();
+  renderList();
+}
+
+/* Render project cards list */
+function renderList() {
+  itemsContainer.innerHTML = '';
+  projects.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'project-card';
+    el.innerHTML = `
+      <div class="swatch" title="${p.color}" style="background:${p.color}; border: 2px solid rgba(0,0,0,0.06)"></div>
+      <div class="meta">
+        <div class="title">${escapeHtml(p.name)}</div>
+        <div class="dates">${formatDate(p.start)} — ${formatDate(p.end)}</div>
+      </div>
+      <div class="controls">
+        <input type="color" value="${p.color}" data-idx="${i}" class="mini-color">
+        <select data-idx="${i}" class="mini-style">
+          <option value="solid" ${p.style==='solid'?'selected':''}>Sólido</option>
+          <option value="dashed" ${p.style==='dashed'?'selected':''}>Discontinuo</option>
+        </select>
+        <button class="btn small danger" data-remove="${i}">Eliminar</button>
+      </div>
+    `;
+    el.addEventListener('click', (e) => {
+      // clicking the card focuses it and populates form for quick edit
+      if (e.target.closest('button') || e.target.matches('input') || e.target.matches('select')) return;
+      populateForm(i);
+      highlightCard(i);
+    });
+    itemsContainer.appendChild(el);
+  });
+
+  // attach events for inline edits and deletes
+  itemsContainer.querySelectorAll('.mini-color').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      projects[idx].color = e.target.value;
+      render();
+    });
+  });
+  itemsContainer.querySelectorAll('.mini-style').forEach(sel => {
+    sel.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      projects[idx].style = e.target.value;
+      render();
+    });
+  });
+  itemsContainer.querySelectorAll('[data-remove]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(e.target.getAttribute('data-remove'));
+      projects.splice(idx,1);
+      refreshViewRange();
+      render();
+      renderList();
+    });
+  });
+}
+
+function populateForm(idx) {
+  const p = projects[idx];
+  nameInput.value = p.name;
+  startInput.value = p.start.toISOString().slice(0,10);
+  endInput.value = p.end.toISOString().slice(0,10);
+  colorInput.value = p.color;
+  styleInput.value = p.style;
+}
+
+/* Escape helper */
+function escapeHtml(s){ return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* Formatting */
+function formatDate(d) {
+  return d.toISOString().slice(0,10);
+}
+
+/* Compute view range */
+function refreshViewRange(){
+  if (projects.length === 0) {
+    const today = new Date();
+    viewStart = new Date(today);
+    viewStart.setDate(viewStart.getDate() - 7);
+    viewEnd = new Date(today);
+    viewEnd.setDate(viewEnd.getDate() + 21);
+    return;
+  }
+  let min = projects[0].start, max = projects[0].end;
+  projects.forEach(p=>{
+    if (p.start < min) min = p.start;
+    if (p.end > max) max = p.end;
+  });
+  // add padding days
+  const padDays = Math.max(3, Math.round((max - min)/(1000*60*60*24) * 0.1));
+  viewStart = new Date(min); viewStart.setDate(viewStart.getDate() - padDays);
+  viewEnd = new Date(max); viewEnd.setDate(viewEnd.getDate() + padDays);
+}
+
+/* Convert date <-> x */
+function dateToX(date) {
+  const t0 = viewStart.getTime();
+  const t1 = viewEnd.getTime();
+  const pct = (date.getTime() - t0) / (t1 - t0);
+  const width = canvas.width / dpr;
+  return padding.left + pct * (width - padding.left - padding.right);
+}
+function xToDate(x) {
+  const width = canvas.width / dpr;
+  const pct = (x - padding.left) / (width - padding.left - padding.right);
+  const t = viewStart.getTime() + pct * (viewEnd.getTime() - viewStart.getTime());
+  return new Date(t);
+}
+
+/* Drawing */
+function clearCanvas() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+function drawGrid() {
+  const width = canvas.width / dpr;
+  const height = canvas.height / dpr;
+  const rangeDays = Math.max(1, Math.round((viewEnd - viewStart)/(1000*60*60*24)));
+  const approxTicks = Math.min(10, Math.max(4, Math.round(rangeDays/7)));
+  // compute tick step in days
+  const step = Math.ceil(rangeDays / approxTicks);
+  ctx.save();
+  ctx.translate(0.5,0.5);
+  ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--card-border') || '#e6e6e6';
+  ctx.lineWidth = 1;
+  ctx.font = `${0.9}rem ${getComputedStyle(document.documentElement).getPropertyValue('--font-family-sans') || 'Inter'}`;
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') || '#6b7280';
+
+  for (let d = new Date(viewStart), i=0; d <= viewEnd; d.setDate(d.getDate() + step, d.getHours()), i++) {
+    const x = dateToX(new Date(d));
+    ctx.beginPath();
+    ctx.moveTo(x, padding.top);
+    ctx.lineTo(x, height - padding.bottom);
+    ctx.setLineDash([2,6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // label
+    ctx.fillText(d.toISOString().slice(0,10), x + 4, padding.top - 8);
+  }
+  ctx.restore();
+}
+
+function drawProjects() {
+  const width = canvas.width / dpr;
+  let rowHeight = 44;
+  projects.forEach((p, i) => {
+    const y = padding.top + i * rowHeight + rowHeight/2;
+    p.y = y;
+    const x1 = dateToX(p.start);
+    const x2 = dateToX(p.end);
+    ctx.save();
+    ctx.lineWidth = 10;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = p.color;
+    if (p.style === 'dashed') ctx.setLineDash([12,8]);
+    else ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(x1, y);
+    ctx.lineTo(x2, y);
+    ctx.stroke();
+    ctx.restore();
+
+    // endpoints / handles
+    ctx.save();
+    ctx.fillStyle = p.color;
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--card-border');
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(x1, y, 8, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x2, y, 8, 0, Math.PI*2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // text label
+    ctx.save();
+    ctx.font = `bold 0.9rem ${getComputedStyle(document.documentElement).getPropertyValue('--font-family-sans')}`;
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-color') || '#111827';
+    ctx.fillText(p.name, x1 + 10, y - 12);
+    ctx.restore();
+  });
+}
+
+function render() {
+  // size canvas for dpr
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.floor(rect.width * dpr);
+  canvas.height = Math.floor(rect.height * dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  clearCanvas();
+  // background
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--card-bg') || '#fff';
+  ctx.fillRect(0,0,canvas.width/dpr,canvas.height/dpr);
+
+  // grid
+  drawGrid();
+  // projects
+  drawProjects();
+}
+
+/* Mouse interactions */
+function getMousePos(evt) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (evt.clientX - rect.left),
+    y: (evt.clientY - rect.top)
+  };
+}
+function hitTest(pos) {
+  // check endpoints first then bar
+  for (let i=0;i<projects.length;i++){
+    const p = projects[i];
+    const x1 = dateToX(p.start);
+    const x2 = dateToX(p.end);
+    const y = p.y;
+    const dx1 = Math.hypot(pos.x - x1, pos.y - y);
+    if (dx1 <= 10) return {type:'start', idx:i};
+    const dx2 = Math.hypot(pos.x - x2, pos.y - y);
+    if (dx2 <= 10) return {type:'end', idx:i};
+    // bar hit: within y-range and between x1,x2
+    const minx = Math.min(x1,x2)-6, maxx = Math.max(x1,x2)+6;
+    if (pos.x >= minx && pos.x <= maxx && Math.abs(pos.y - y) <= 10) {
+      return {type:'move', idx:i};
+    }
+  }
+  return null;
+}
+
+canvas.addEventListener('mousedown', (e) => {
+  const pos = getMousePos(e);
+  const hit = hitTest(pos);
+  if (!hit) return;
+  const p = projects[hit.idx];
+  dragState = {
+    type: hit.type,
+    idx: hit.idx,
+    startX: pos.x,
+    origStart: new Date(p.start),
+    origEnd: new Date(p.end)
+  };
+  canvas.style.cursor = 'grabbing';
+});
+
+window.addEventListener('mousemove', (e) => {
+  const pos = getMousePos(e);
+  if (dragState) {
+    const dx = pos.x - dragState.startX;
+    const deltaDate = xToDate(padding.left + dx) - xToDate(padding.left + 0);
+    // convert delta to ms
+    const dt = xToDate(padding.left + dx).getTime() - xToDate(padding.left).getTime();
+    const p = projects[dragState.idx];
+    if (dragState.type === 'move') {
+      p.start = new Date(dragState.origStart.getTime() + dt);
+      p.end = new Date(dragState.origEnd.getTime() + dt);
+    } else if (dragState.type === 'start') {
+      const newStart = new Date(dragState.origStart.getTime() + dt);
+      if (newStart >= p.end) p.start = new Date(p.end.getTime() - 24*60*60*1000);
+      else p.start = newStart;
+    } else if (dragState.type === 'end') {
+      const newEnd = new Date(dragState.origEnd.getTime() + dt);
+      if (newEnd <= p.start) p.end = new Date(p.start.getTime() + 24*60*60*1000);
+      else p.end = newEnd;
+    }
+    refreshViewRange();
+    render();
+  } else {
+    // update cursor hints
+    const hit = hitTest(pos);
+    if (hit) {
+      canvas.style.cursor = hit.type === 'move' ? 'grab' : 'ew-resize';
+    } else {
+      canvas.style.cursor = 'default';
+    }
+  }
+});
+
+window.addEventListener('mouseup', (e) => {
+  if (dragState) {
+    dragState = null;
+    canvas.style.cursor = 'default';
+    renderList(); // refresh displayed dates
+  }
+});
+
+/* Buttons */
+addBtn.addEventListener('click', () => {
+  if (!nameInput.value) return alert('Agrega un nombre para el proyecto');
+  addProject({
+    name: nameInput.value,
+    start: startInput.value,
+    end: endInput.value,
+    color: colorInput.value,
+    style: styleInput.value
+  });
+});
+addAndSelectBtn.addEventListener('click', () => {
+  if (!nameInput.value) return alert('Agrega un nombre para el proyecto');
+  addProject({
+    name: nameInput.value,
+    start: startInput.value,
+    end: endInput.value,
+    color: colorInput.value,
+    style: styleInput.value
+  });
+  // populate form with the newly added project for quick tweaks
+  populateForm(projects.length - 1);
+});
+
+clearBtn.addEventListener('click', () => {
+  if (!confirm('¿Limpiar todo el gráfico y empezar de nuevo?')) return;
+  projects = [];
+  refreshViewRange();
+  render();
+  renderList();
+});
+
+exportBtn.addEventListener('click', () => {
+  // Export canvas as PNG
+  // create temporary canvas with white background for nicer export
+  const exportCanvas = document.createElement('canvas');
+  const rect = canvas.getBoundingClientRect();
+  exportCanvas.width = rect.width * dpr;
+  exportCanvas.height = rect.height * dpr;
+  const exCtx = exportCanvas.getContext('2d');
+  // scale
+  exCtx.setTransform(dpr,0,0,dpr,0,0);
+  // background
+  exCtx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--app-bg') || '#fff';
+  exCtx.fillRect(0,0,rect.width,rect.height);
+  // draw original canvas onto export canvas (at device size)
+  exCtx.drawImage(canvas, 0, 0, rect.width, rect.height);
+  const data = exportCanvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = data;
+  a.download = 'reflejos-proyectos.png';
+  a.click();
+});
+
+/* Responsive handling */
+function handleResize() {
+  dpr = Math.max(1, window.devicePixelRatio || 1);
+  render();
+}
+window.addEventListener('resize', handleResize);
+
+/* Initial draw */
+refreshViewRange();
+render();
+renderList();
+
+// helper: initialize with a sample project for demo
+addProject({
+  name: 'Prototype',
+  start: addDaysISO(todayISO(), -5),
+  end: addDaysISO(todayISO(), 5),
+  color: '#3b82f6',
+  style: 'solid'
+});
+addProject({
+  name: 'Marketing',
+  start: todayISO(),
+  end: addDaysISO(todayISO(), 20),
+  color: '#ef4444',
+  style: 'dashed'
+});
+
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
+
+<style>
+/* === COMIENZA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+/* Usar las variables globales obligatorias para colores, fuentes y fondos */
+
+:root {
+  /* variables por defecto (en caso de no estar definidas por Layout) */
+  --app-bg: #0f172a;
+  --card-bg: #0b1220;
+  --text-color: #e6eef8;
+  --text-secondary: #9fb0d4;
+  --accent: 59 130 246;
+  --accent-secondary: 14 165 233;
+  --card-border: rgba(255,255,255,0.06);
+  --shadow-color: rgba(2,6,23,0.6);
+  --font-family-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  --font-family-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono';
+}
+
+/* Layout */
+.tool-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 1rem;
+  font-family: var(--font-family-sans);
+  color: var(--text-color);
+}
+
+/* Back link */
+.back-link {
+  display: inline-block;
+  margin-bottom: 0.6rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+/* Hero header */
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 6px 18px var(--shadow-color);
+  padding: 1.25rem 1.25rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.hero-title {
+  color: rgb(var(--accent));
+  font-family: var(--font-family-sans);
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.hero-sub {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Controls area */
+.controls {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1rem;
+}
+
+/* Cards */
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 22px var(--shadow-color);
+}
+
+/* Form */
+.form-card .form-row {
+  margin-bottom: 0.85rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.form-row label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.form-row input[type="text"],
+.form-row input[type="date"],
+.form-row select,
+.form-row input[type="color"] {
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--card-border);
+  background: rgba(255,255,255,0.02);
+  color: var(--text-color);
+  font-size: 0.95rem;
+  font-family: var(--font-family-sans);
+}
+
+.actions-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  margin-top: 0.25rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 0.55rem;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-color);
+}
+
+.btn.primary {
+  background: linear-gradient(90deg, rgba(var(--accent),0.12), rgba(var(--accent-secondary),0.12));
+  border: 1px solid rgba(var(--accent),0.18);
+  color: rgb(var(--accent));
+  box-shadow: 0 6px 16px rgba(var(--accent),0.06);
+}
+
+.btn.ghost {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+}
+
+.btn.outline {
+  background: transparent;
+  border: 1px solid rgba(var(--accent),0.12);
+  color: rgb(var(--accent));
+}
+
+.btn.small {
+  padding: 0.25rem 0.45rem;
+  font-size: 0.8rem;
+  border-radius: 0.45rem;
+}
+
+.btn.danger {
+  background: rgba(239,68,68,0.08);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.14);
+}
+
+/* Projects list */
+.projects-list h3 {
+  margin: 0 0 0.6rem 0;
+  color: var(--text-color);
+}
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 240px;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+.project-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.45rem;
+  border-radius: 0.5rem;
+  transition: background 0.15s ease;
+  border: 1px solid transparent;
+}
+.project-card:hover {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--card-border);
+}
+.project-card .swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 0.5rem;
+  flex: 0 0 auto;
+}
+.project-card .meta {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.project-card .meta .title {
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.project-card .meta .dates {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.project-card .controls {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+/* Canvas area */
+.canvas-wrap {
+  margin-top: 1rem;
+  padding: 0.6rem;
+}
+.canvas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+.canvas-area {
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+  border-radius: 0.5rem;
+  border: 1px solid var(--card-border);
+  padding: 0.5rem;
+  min-height: 320px;
+  display: grid;
+}
+canvas {
+  width: 100%;
+  height: 360px;
+  border-radius: 0.5rem;
+  background: transparent;
+  display: block;
+}
+
+/* Legend and footer */
+.legend {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+.legend img {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  margin-right: 0.6rem;
+}
+
+/* Small screens responsiveness */
+@media (max-width: 768px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero-actions { width: 100%; justify-content: flex-start; }
+  canvas { height: 300px; }
+  .form-row.two { grid-template-columns: 1fr; }
+}
+
+/* Accessibility and fine details */
+.hint {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+}
+
+/* Monospace usage for code-like text if needed */
+.code {
+  font-family: var(--font-family-mono);
+  background: rgba(255,255,255,0.02);
+  padding: 0.2rem 0.35rem;
+  border-radius: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text-color);
+}
+
+/* === TERMINA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+</style>
