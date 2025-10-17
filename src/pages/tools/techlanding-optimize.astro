@@ -1,0 +1,161 @@
+---
+// techLanding.astro
+
+const testimonials = [
+  { name: "Cliente 1", feedback: "¡Excelente servicio!", image: "path/to/image1.jpg" },
+  { name: "Cliente 2", feedback: "Muy recomendable.", image: "path/to/image2.jpg" },
+];
+
+const plans = [
+  { name: "Básico", price: "$10/mes", features: ["Función 1", "Función 2"] },
+  { name: "Pro", price: "$20/mes", features: ["Función 1", "Función 2", "Función 3"] },
+  { name: "Premium", price: "$30/mes", features: ["Función 1", "Función 2", "Función 3", "Función 4"] },
+];
+---
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechLanding Optimize</title>
+  <style>
+    body {
+      font-family: var(--font-family-sans);
+      background-color: var(--app-bg);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    .section {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background-color: var(--card-bg);
+      border-radius: 0.5rem;
+      box-shadow: var(--shadow-color);
+    }
+    .testimonials {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      border: 1px solid var(--card-border);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .plan {
+      text-align: center;
+    }
+    .subscribe-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .device-preview {
+      display: flex;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+    .device {
+      width: 300px;
+      height: 500px;
+      border: 1px solid var(--card-border);
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    .social-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      .device {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header class="section">
+      <h1 class="hero-title">TechLanding Optimize</h1>
+      <p>Optimiza tu landing page y obtén más conversiones.</p>
+    </header>
+
+    <div class="section">
+      <h2>Información de la Startup</h2>
+      <input type="text" placeholder="Nombre de la startup" />
+      <textarea placeholder="Descripción de la startup"></textarea>
+      <input type="file" accept="image/*" />
+    </div>
+
+    <div class="section">
+      <h2>Testimonios</h2>
+      <div class="testimonials">
+        {testimonials.map(testimonial => (
+          <div class="card">
+            <img src={testimonial.image} alt={testimonial.name} style="width: 100%; border-radius: 0.5rem;" />
+            <h3>{testimonial.name}</h3>
+            <p>{testimonial.feedback}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Tarifas</h2>
+      <div class="plans">
+        {plans.map(plan => (
+          <div class="plan">
+            <h3>{plan.name}</h3>
+            <p>{plan.price}</p>
+            <ul>
+              {plan.features.map(feature => <li>{feature}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Formulario de Suscripción</h2>
+      <form class="subscribe-form">
+        <input type="email" placeholder="Tu correo electrónico" />
+        <button type="submit">Suscribirse</button>
+      </form>
+    </div>
+
+    <div class="section device-preview">
+      <h2>Vista Previa en Dispositivos</h2>
+      <div class="device">Vista previa de la landing page aquí</div>
+    </div>
+
+    <div class="section social-buttons">
+      <button>Compartir en Facebook</button>
+      <button>Compartir en Twitter</button>
+      <button>Compartir en LinkedIn</button>
+    </div>
+
+    <footer class="section">
+      <button>Exportar como HTML</button>
+    </footer>
+  </div>
+
+  <script>
+    // Aquí puedes añadir lógica para manejar los distintos formularios, la vista previa, el seguimiento de estadísticas, etc.
+  </script>
+</body>
+</html>
