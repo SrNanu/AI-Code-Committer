@@ -1,0 +1,833 @@
+---
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: "Recordatorio de Momentos 'Satori'",
+  description: ``,
+  tags: ['mindfulness', 'bienestar', 'simple', 'recordatorio', 'reflexión']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  <main class="container" role="main" aria-labelledby="title">
+    <header class="hero">
+      <div class="hero-left">
+        <h1 id="title" class="hero-title">Recordatorio de Momentos <span class="accent">'Satori'</span></h1>
+        <p class="hero-sub">Un temporizador minimalista de 30s para pausar, respirar y reflexionar. Programa varios momentos al día con un solo clic.</p>
+        <div class="controls">
+          <button id="start-30" class="btn primary">Iniciar 30s</button>
+          <button id="add-reminder-open" class="btn outline">Agregar Recordatorio</button>
+          <div class="sound-control">
+            <label for="sound-select">Sonido</label>
+            <select id="sound-select" aria-label="Seleccionar sonido">
+              <option value="none">Sin sonido</option>
+              <option value="chime">Campana suave</option>
+              <option value="ambient">Ambiente cálido</option>
+            </select>
+            <label class="switch">
+              <input id="sound-toggle" type="checkbox" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="timer-card card" aria-live="polite">
+          <div class="timer-visual">
+            <svg class="progress-ring" width="160" height="160" viewBox="0 0 120 120" aria-hidden="true">
+              <defs>
+                <linearGradient id="grad" x1="0" x2="1">
+                  <stop offset="0%" stop-color="rgb(var(--accent))" stop-opacity="1"/>
+                  <stop offset="100%" stop-color="rgb(var(--accent-secondary))" stop-opacity="1"/>
+                </linearGradient>
+              </defs>
+              <circle class="ring-bg" cx="60" cy="60" r="52" stroke-width="12" fill="none"/>
+              <circle class="ring" cx="60" cy="60" r="52" stroke="url(#grad)" stroke-width="12" stroke-linecap="round" fill="none" transform="rotate(-90 60 60)"/>
+            </svg>
+            <div class="time-text">
+              <div id="time-display" class="time">00:30</div>
+              <div class="label">Tiempo</div>
+            </div>
+          </div>
+          <div class="timer-actions">
+            <button id="pause-resume" class="btn ghost" disabled>Pause</button>
+            <button id="reset" class="btn ghost" disabled>Reset</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="schedule">
+      <h2 class="section-title">Momentos Programados</h2>
+      <div id="scheduled-list" class="grid"></div>
+    </section>
+  </main>
+
+  <!-- Panel de creación de recordatorios -->
+  <div id="add-panel" class="panel" aria-hidden="true">
+    <form id="add-form" class="panel-card" aria-label="Agregar recordatorios">
+      <h3>Programar múltiples momentos</h3>
+      <p class="muted">Elige cuántos recordatorios quieres y el periodo del día. Se crearán distribuídos uniformemente.</p>
+
+      <label class="field">
+        <span>Cantidad</span>
+        <input id="rem-count" type="number" min="1" max="12" value="3">
+      </label>
+
+      <div class="row">
+        <label class="field">
+          <span>Desde</span>
+          <input id="rem-from" type="time" value="09:00">
+        </label>
+        <label class="field">
+          <span>Hasta</span>
+          <input id="rem-to" type="time" value="18:00">
+        </label>
+      </div>
+
+      <div class="panel-actions">
+        <button type="submit" class="btn primary">Agregar</button>
+        <button type="button" id="add-cancel" class="btn outline">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Overlay de reflexión al terminar -->
+  <div id="reflection-overlay" class="overlay" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="reflection-card">
+      <h3>Momento Satori</h3>
+      <p class="reflection-text">Tómate 30 segundos. ¿En qué estás presente ahora?</p>
+      <div class="reflection-actions">
+        <button class="btn ghost" data-feel="calm">Calmado</button>
+        <button class="btn ghost" data-feel="alert">Atento</button>
+        <button class="btn ghost" data-feel="tired">Cansado</button>
+      </div>
+      <button id="close-reflection" class="btn primary">Cerrar y continuar</button>
+    </div>
+  </div>
+
+  <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+
+(() => {
+  // Configuración
+  const DEFAULT_DURATION = 30; // segundos
+  const ring = document.querySelector('.ring');
+  const timeDisplay = document.getElementById('time-display');
+  const startBtn = document.getElementById('start-30');
+  const pauseResumeBtn = document.getElementById('pause-resume');
+  const resetBtn = document.getElementById('reset');
+  const addOpen = document.getElementById('add-reminder-open');
+  const addPanel = document.getElementById('add-panel');
+  const addForm = document.getElementById('add-form');
+  const addCancel = document.getElementById('add-cancel');
+  const scheduledList = document.getElementById('scheduled-list');
+  const soundSelect = document.getElementById('sound-select');
+  const soundToggle = document.getElementById('sound-toggle');
+
+  const reflectionOverlay = document.getElementById('reflection-overlay');
+  const closeReflection = document.getElementById('close-reflection');
+
+  // For ring animation
+  const RADIUS = 52;
+  const CIRC = 2 * Math.PI * RADIUS;
+  ring.style.strokeDasharray = `${CIRC} ${CIRC}`;
+  ring.style.strokeDashoffset = `${0}`;
+
+  // Timer state
+  let duration = DEFAULT_DURATION;
+  let remaining = duration;
+  let timerInterval = null;
+  let paused = true;
+  let lastTick = null;
+
+  // Scheduler state
+  let scheduled = loadScheduled(); // array of {id, timeISO, label}
+  renderScheduled();
+
+  // Audio context for sounds
+  let audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
+
+  function playChime() {
+    if (!soundToggle.checked || soundSelect.value === 'none') return;
+    const ctx = ensureAudio();
+    const now = ctx.currentTime;
+    // Create a pleasant bell sequence
+    const freqs = [880, 660, 990].map(f => f * (Math.random() * 0.02 + 0.99));
+    const master = ctx.createGain();
+    master.gain.value = 0.0001;
+    master.connect(ctx.destination);
+    master.gain.exponentialRampToValueAtTime(0.3, now + 0.01);
+    freqs.forEach((f, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.value = 0;
+      o.connect(g);
+      g.connect(master);
+      o.start(now + i * 0.08);
+      g.gain.setValueAtTime(0.0001, now + i * 0.08);
+      g.gain.exponentialRampToValueAtTime(0.2, now + i * 0.08 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 1.5);
+      o.stop(now + i * 0.08 + 1.6);
+    });
+  }
+
+  function playAmbientShort() {
+    if (!soundToggle.checked || soundSelect.value !== 'ambient') return;
+    const ctx = ensureAudio();
+    const now = ctx.currentTime;
+    const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 1.2, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.2;
+    const src = ctx.createBufferSource();
+    src.buffer = noiseBuffer;
+    const filt = ctx.createBiquadFilter();
+    filt.type = 'lowpass';
+    filt.frequency.value = 800;
+    src.connect(filt);
+    const gain = ctx.createGain();
+    gain.gain.value = 0.0001;
+    filt.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.00001, now + 1.1);
+    src.start(now);
+    src.stop(now + 1.2);
+  }
+
+  function playFinishSound() {
+    if (soundSelect.value === 'chime') playChime();
+    else if (soundSelect.value === 'ambient') playAmbientShort();
+  }
+
+  // Timer functions
+  function formatTime(sec) {
+    const s = Math.max(0, Math.floor(sec));
+    const mm = Math.floor(s / 60);
+    const ss = s % 60;
+    return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+  }
+
+  function updateVisual() {
+    const percent = Math.max(0, Math.min(1, remaining / duration));
+    const offset = CIRC * (1 - percent);
+    // Smooth transition
+    ring.style.transition = 'stroke-dashoffset 0.25s linear';
+    ring.style.strokeDashoffset = `${offset}`;
+    timeDisplay.textContent = formatTime(remaining);
+  }
+
+  function startTimer(d = DEFAULT_DURATION) {
+    if (timerInterval) clearInterval(timerInterval);
+    duration = d;
+    remaining = d;
+    paused = false;
+    lastTick = Date.now();
+    updateVisual();
+    pauseResumeBtn.disabled = false;
+    resetBtn.disabled = false;
+    pauseResumeBtn.textContent = 'Pause';
+    timerInterval = setInterval(tick, 100); // 100ms for smoothness
+  }
+
+  function tick() {
+    if (paused) return;
+    const now = Date.now();
+    const elapsed = (now - lastTick) / 1000;
+    lastTick = now;
+    remaining -= elapsed;
+    if (remaining <= 0) {
+      remaining = 0;
+      updateVisual();
+      finishTimer();
+    } else {
+      updateVisual();
+    }
+  }
+
+  function pauseTimer() {
+    paused = true;
+    pauseResumeBtn.textContent = 'Resume';
+  }
+  function resumeTimer() {
+    if (!paused) return;
+    paused = false;
+    lastTick = Date.now();
+    pauseResumeBtn.textContent = 'Pause';
+  }
+  function resetTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    duration = DEFAULT_DURATION;
+    remaining = duration;
+    paused = true;
+    updateVisual();
+    pauseResumeBtn.disabled = true;
+    resetBtn.disabled = true;
+    pauseResumeBtn.textContent = 'Pause';
+  }
+
+  function finishTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    playFinishSound();
+    // Visual finish: pulse ring
+    ring.classList.add('finish');
+    reflectionOverlay.setAttribute('aria-hidden', 'false');
+    reflectionOverlay.style.display = 'flex';
+    // subtle animation reset after a short delay
+    setTimeout(() => ring.classList.remove('finish'), 1400);
+  }
+
+  // Event listeners
+  startBtn.addEventListener('click', () => {
+    startTimer(DEFAULT_DURATION);
+  });
+
+  pauseResumeBtn.addEventListener('click', () => {
+    if (paused) resumeTimer();
+    else pauseTimer();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    resetTimer();
+  });
+
+  // Add panel
+  addOpen.addEventListener('click', () => {
+    addPanel.setAttribute('aria-hidden', 'false');
+    addPanel.style.display = 'flex';
+  });
+  addCancel.addEventListener('click', (e) => {
+    e.preventDefault();
+    addPanel.setAttribute('aria-hidden', 'true');
+    addPanel.style.display = 'none';
+  });
+
+  addForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const count = Math.min(12, Math.max(1, parseInt(document.getElementById('rem-count').value, 10) || 1));
+    const from = document.getElementById('rem-from').value;
+    const to = document.getElementById('rem-to').value;
+    if (!from || !to) return;
+    const times = distributeTimesToday(from, to, count);
+    times.forEach(tISO => {
+      scheduled.push({ id: genId(), time: tISO, label: 'Satori' });
+    });
+    saveScheduled();
+    renderScheduled();
+    scheduleCheck(); // re-evaluate timers
+    addPanel.setAttribute('aria-hidden', 'true');
+    addPanel.style.display = 'none';
+  });
+
+  // Reflection overlay
+  reflectionOverlay.addEventListener('click', (e) => {
+    if (e.target === reflectionOverlay) closeReflection.click();
+  });
+  closeReflection.addEventListener('click', () => {
+    reflectionOverlay.setAttribute('aria-hidden', 'true');
+    reflectionOverlay.style.display = 'none';
+    resetTimer();
+  });
+  document.querySelectorAll('.reflection-actions .btn').forEach(b => {
+    b.addEventListener('click', () => {
+      // lightweight analytics stub: save last feeling
+      localStorage.setItem('satori-last-feel', b.dataset.feel);
+      closeReflection.click();
+    });
+  });
+
+  // Scheduling utilities
+  function distributeTimesToday(fromTime, toTime, count) {
+    // fromTime and toTime in "HH:MM"
+    const [fh, fm] = fromTime.split(':').map(Number);
+    const [th, tm] = toTime.split(':').map(Number);
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate(), fh, fm, 0, 0);
+    let end = new Date(today.getFullYear(), today.getMonth(), today.getDate(), th, tm, 0, 0);
+    // If end <= start assume it's next day -> push end one day
+    if (end <= start) end = new Date(end.getTime() + 24 * 3600 * 1000);
+    const span = end - start;
+    const times = [];
+    for (let i = 0; i < count; i++) {
+      const t = new Date(start.getTime() + (span * (i / Math.max(1, count - 1))));
+      times.push(t.toISOString());
+    }
+    return times;
+  }
+
+  function renderScheduled() {
+    scheduledList.innerHTML = '';
+    if (scheduled.length === 0) {
+      scheduledList.innerHTML = `<div class="card empty">No hay momentos programados — agrega algunos para empezar.</div>`;
+      return;
+    }
+    scheduled.sort((a,b)=> new Date(a.time)-new Date(b.time));
+    scheduled.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'card reminder';
+      const when = new Date(item.time);
+      card.innerHTML = `
+        <div class="meta">
+          <div class="label">${item.label}</div>
+          <div class="time-small">${userTime(when)}</div>
+        </div>
+        <div class="rem-actions">
+          <button class="btn ghost start-now" data-id="${item.id}">Iniciar ahora</button>
+          <button class="btn outline delete" data-id="${item.id}">Eliminar</button>
+        </div>
+      `;
+      scheduledList.appendChild(card);
+    });
+    // attach listeners
+    document.querySelectorAll('.start-now').forEach(b => b.addEventListener('click', (e) => {
+      startTimer(DEFAULT_DURATION);
+    }));
+    document.querySelectorAll('.delete').forEach(b => b.addEventListener('click', (e) => {
+      const id = b.dataset.id;
+      scheduled = scheduled.filter(s => s.id !== id);
+      saveScheduled();
+      renderScheduled();
+    }));
+  }
+
+  function userTime(d) {
+    const dt = new Date(d);
+    return dt.toLocaleString(undefined, { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function genId() {
+    return Math.random().toString(36).slice(2, 9);
+  }
+
+  function saveScheduled() {
+    try {
+      localStorage.setItem('satori-scheduled', JSON.stringify(scheduled));
+    } catch (e) {}
+  }
+
+  function loadScheduled() {
+    try {
+      const raw = localStorage.getItem('satori-scheduled');
+      if (!raw) return [];
+      return JSON.parse(raw).map(s => ({ ...s }));
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Periodic check to auto-trigger scheduled reminders when time arrives
+  let checkTimer = null;
+  function scheduleCheck() {
+    if (checkTimer) clearInterval(checkTimer);
+    checkTimer = setInterval(() => {
+      const now = new Date();
+      // find scheduled items within next 3 seconds (or overdue)
+      const toTrigger = scheduled.filter(s => {
+        const t = new Date(s.time);
+        return t <= new Date(now.getTime() + 2000) && t > new Date(now.getTime() - 1000 * 60 * 60); // avoid very old
+      });
+      if (toTrigger.length > 0) {
+        // trigger sequentially
+        toTrigger.forEach(tItem => {
+          startTimer(DEFAULT_DURATION);
+          // remove once triggered to avoid repeats
+          scheduled = scheduled.filter(s => s.id !== tItem.id);
+        });
+        saveScheduled();
+        renderScheduled();
+      }
+    }, 2000);
+  }
+  scheduleCheck();
+
+  // Initialization
+  resetTimer(); // setup visuals
+
+  // Keyboard accessibility: space starts
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+      e.preventDefault();
+      startTimer(DEFAULT_DURATION);
+    }
+  });
+
+  // small UX: clicking sound select will play a preview
+  soundSelect.addEventListener('change', () => {
+    if (!soundToggle.checked) return;
+    if (soundSelect.value === 'chime') playChime();
+    else if (soundSelect.value === 'ambient') playAmbientShort();
+  });
+
+  // save sound prefs
+  soundToggle.addEventListener('change', () => {
+    localStorage.setItem('satori-sound-on', soundToggle.checked ? '1' : '0');
+  });
+  soundSelect.addEventListener('change', () => {
+    localStorage.setItem('satori-sound-type', soundSelect.value);
+  });
+  // restore sound prefs if any
+  (function restoreSoundPrefs(){
+    try {
+      const on = localStorage.getItem('satori-sound-on');
+      const type = localStorage.getItem('satori-sound-type');
+      if (on !== null) soundToggle.checked = on === '1';
+      if (type) soundSelect.value = type;
+    } catch (e) {}
+  })();
+
+})();
+
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
+
+<style>
+/* === COMIENZA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+/* Requerido: usar variables globales para colores, fuentes y sombras. */
+/* Tipografía */
+:root {
+  /* not defining vars here — assume system provides them */
+}
+
+/* Global layout */
+.container {
+  max-width: 88rem;
+  margin: 2rem auto;
+  padding: 1rem;
+  font-family: var(--font-family-sans);
+  color: var(--text-color);
+  background: transparent;
+}
+
+/* Back link */
+.back-link {
+  display:inline-block;
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+/* HERO */
+.hero {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.25rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 6px 20px rgba(var(--shadow-color), 0.08);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.hero-left {
+  flex: 1 1 50%;
+  min-width: 18rem;
+}
+
+.hero-title {
+  font-size: 1.75rem;
+  margin: 0;
+  color: rgb(var(--accent));
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.accent {
+  color: rgb(var(--accent-secondary));
+  font-weight: 600;
+  font-family: var(--font-family-mono);
+  font-size: 1.05rem;
+}
+
+.hero-sub {
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.98rem;
+  line-height: 1.4;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: var(--font-family-sans);
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.6rem;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn.primary {
+  background: linear-gradient(90deg, rgba(var(--accent),0.12), rgba(var(--accent-secondary),0.08));
+  color: rgb(var(--accent));
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(var(--shadow-color), 0.06);
+}
+.btn.outline {
+  border: 1px solid var(--card-border);
+  color: var(--text-color);
+  background: var(--card-bg);
+}
+.btn.ghost {
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px dashed var(--card-border);
+}
+
+/* sound control */
+.sound-control {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+.sound-control select {
+  background: var(--card-bg);
+  color: var(--text-color);
+  border: 1px solid var(--card-border);
+  padding: 0.28rem 0.5rem;
+  border-radius: 0.4rem;
+}
+
+/* simple toggle switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 2.2rem;
+  height: 1.1rem;
+}
+.switch input { display:none; }
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+}
+.slider:before {
+  content: '';
+  position: absolute;
+  left: 0.12rem;
+  top: 0.12rem;
+  width: 0.86rem;
+  height: 0.86rem;
+  background: var(--card-bg);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(var(--shadow-color), 0.08);
+}
+.switch input:checked + .slider {
+  background: linear-gradient(90deg, rgba(var(--accent),0.12), rgba(var(--accent-secondary),0.08));
+}
+.switch input:checked + .slider:before {
+  transform: translateX(1.1rem);
+}
+
+/* TIMER CARD */
+.timer-card {
+  width: 18rem;
+  padding: 1rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgba(var(--shadow-color), 0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.timer-visual {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 0.75rem;
+  position: relative;
+}
+.progress-ring { width: 8.5rem; height: 8.5rem; }
+.ring-bg {
+  stroke: var(--card-border);
+  opacity: 0.6;
+}
+.ring {
+  transition: stroke-dashoffset 0.2s linear;
+  filter: drop-shadow(0 6px 18px rgba(var(--shadow-color), 0.06));
+}
+.ring.finish {
+  transform-origin: center;
+  animation: ring-pop 0.9s ease forwards;
+}
+@keyframes ring-pop {
+  0% { transform: scale(1); filter: drop-shadow(0 6px 18px rgba(var(--shadow-color),0.06)); }
+  50% { transform: scale(1.12); filter: drop-shadow(0 16px 40px rgba(var(--shadow-color),0.12)); }
+  100% { transform: scale(1); filter: drop-shadow(0 6px 18px rgba(var(--shadow-color),0.06)); }
+}
+
+.time-text {
+  position: absolute;
+  text-align: center;
+}
+.time {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  font-family: var(--font-family-mono);
+}
+.label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* scheduled list */
+.schedule {
+  margin-top: 1rem;
+}
+.section-title {
+  font-size: 1.05rem;
+  margin: 0.75rem 0;
+  color: var(--text-color);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem;
+}
+.card {
+  padding: 0.9rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.6rem;
+  box-shadow: 0 8px 20px rgba(var(--shadow-color), 0.04);
+  color: var(--text-color);
+}
+.card.empty {
+  opacity: 0.8;
+  color: var(--text-secondary);
+}
+.reminder {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 0.5rem;
+}
+.reminder .meta {
+  display:flex;
+  flex-direction:column;
+}
+.reminder .label {
+  font-weight:600;
+  color: rgb(var(--accent));
+}
+.reminder .time-small {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+.rem-actions { display:flex; gap:0.5rem; }
+
+/* Add panel */
+.panel {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.28);
+  z-index: 60;
+}
+.panel-card {
+  width: min(44rem, 92%);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  padding: 1.15rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 60px rgba(var(--shadow-color), 0.12);
+}
+.panel-card h3 { margin: 0 0 0.25rem 0; color: rgb(var(--accent)); }
+.panel-card .muted { color: var(--text-secondary); margin-bottom: 0.6rem; }
+.field { display:flex; flex-direction:column; gap:0.25rem; margin-bottom:0.6rem; }
+.field input[type="number"], .field input[type="time"] {
+  padding: 0.5rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-color);
+  font-family: var(--font-family-sans);
+}
+.row { display:flex; gap:0.6rem; }
+.panel-actions { display:flex; gap:0.6rem; justify-content:flex-end; margin-top:0.5rem; }
+
+/* Reflection overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(0,0,0,0.28), rgba(0,0,0,0.4));
+  z-index: 80;
+}
+.reflection-card {
+  width: min(36rem, 92%);
+  padding: 1.2rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, rgba(var(--accent),0.03), var(--card-bg));
+  border: 1px solid var(--card-border);
+  box-shadow: 0 30px 80px rgba(var(--shadow-color), 0.12);
+  text-align: center;
+}
+.reflection-card h3 { margin:0; color: rgb(var(--accent-secondary)); }
+.reflection-text { margin: 0.6rem 0 1rem 0; color: var(--text-secondary); font-size: 1rem;}
+.reflection-actions { display:flex; gap:0.6rem; justify-content:center; margin-bottom:1rem; }
+.reflection-actions .btn { min-width: 7rem; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .hero-right { display:flex; justify-content:center; }
+  .timer-card { margin: 0 auto; width: 100%; max-width: 22rem; }
+  .controls { justify-content: flex-start; }
+  .grid { grid-template-columns: 1fr; }
+}
+
+/* small helpers */
+.muted { color: var(--text-secondary); font-size: 0.95rem; }
+
+/* === TERMINA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+</style>
