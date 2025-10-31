@@ -1,0 +1,691 @@
+import Layout from '../../layouts/Layout.astro';
+
+// Metadatos de la página
+export const frontmatter = {
+  title: 'Capturador de Sonrisas',
+  description: ``,
+  tags: ['fotografía', 'momento', 'felicidad', 'visualización', 'colección']
+};
+---
+
+<Layout title={frontmatter.title}>
+  <a href={import.meta.env.BASE_URL} class="back-link">&larr; Volver a la Fábrica</a>
+  
+  <!-- === COMIENZA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+  <main class="container">
+    <header class="hero">
+      <div>
+        <h1 class="hero-title">Capturador de Sonrisas</h1>
+        <p class="hero-sub">Captura momentos con un solo clic y crea un collage para compartir tus mejores recuerdos.</p>
+      </div>
+      <div class="hero-actions">
+        <button id="captureBtn" class="btn primary">Capturar Sonrisa</button>
+        <button id="shareBtn" class="btn accent">Compartir Collage</button>
+        <button id="downloadBtn" class="btn">Descargar Collage</button>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <div class="collage card" id="collage">
+        <!-- Si no hay fotos, mostramos un placeholder -->
+        <div class="collage-placeholder" id="collagePlaceholder">
+          <img src="https://placehold.co/800x500?text=Tu+Collage+de+Sonrisas" alt="Collage placeholder">
+          <p class="placeholder-text">Presiona "Capturar Sonrisa" para agregar fotos</p>
+        </div>
+        <!-- Contenedor donde se insertan las fotos capturadas -->
+        <div class="collage-grid" id="collageGrid" aria-live="polite"></div>
+      </div>
+
+      <aside class="panel card">
+        <h2 class="panel-title">Vista previa de cámara</h2>
+        <div class="camera-preview">
+          <video id="video" autoplay playsinline muted class="video" poster="https://placehold.co/400x300?text=Preview"></video>
+          <canvas id="captureCanvas" class="hidden"></canvas>
+        </div>
+
+        <div class="panel-section">
+          <h3 class="section-title">Mosaico de Recuerdos</h3>
+          <div id="mosaic" class="mosaic">
+            <!-- Inicialmente mostramos placeholders (obligatorio usar placehold.co) -->
+            <div class="card tile">
+              <img src="https://placehold.co/200x150?text=Recuerdo+1" alt="Recuerdo 1">
+            </div>
+            <div class="card tile">
+              <img src="https://placehold.co/200x150?text=Recuerdo+2" alt="Recuerdo 2">
+            </div>
+            <div class="card tile">
+              <img src="https://placehold.co/200x150?text=Recuerdo+3" alt="Recuerdo 3">
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Modal para ver imagen ampliada -->
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button id="closeModal" class="modal-close" aria-label="Cerrar">&times;</button>
+      <div class="modal-content">
+        <button id="prevImg" class="modal-nav">&larr;</button>
+        <img id="modalImg" src="https://placehold.co/800x600?text=Selecciona+una+foto" alt="Imagen ampliada">
+        <button id="nextImg" class="modal-nav">&rarr;</button>
+      </div>
+      <p id="modalTitle" class="visually-hidden">Imagen ampliada</p>
+    </div>
+  </main>
+
+  <!-- === TERMINA EL CÓDIGO HTML DE LA HERRAMIENTA === -->
+</Layout>
+
+<script>
+// === COMIENZA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+(() => {
+  const captureBtn = document.getElementById('captureBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('captureCanvas');
+  const collageGrid = document.getElementById('collageGrid');
+  const collagePlaceholder = document.getElementById('collagePlaceholder');
+  const mosaic = document.getElementById('mosaic');
+
+  const modal = document.getElementById('modal');
+  const modalImg = document.getElementById('modalImg');
+  const closeModal = document.getElementById('closeModal');
+  const prevImg = document.getElementById('prevImg');
+  const nextImg = document.getElementById('nextImg');
+
+  let photos = []; // array de dataURLs
+  let currentStream = null;
+  let currentModalIndex = 0;
+
+  // Util: detener la cámara
+  function stopCamera() {
+    if (currentStream) {
+      currentStream.getTracks().forEach(t => t.stop());
+      currentStream = null;
+      video.srcObject = null;
+    }
+  }
+
+  // Inicia la cámara, captura una foto automáticamente, guarda y detiene
+  async function startAndCapture() {
+    try {
+      const constraints = { video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      currentStream = stream;
+      video.srcObject = stream;
+
+      // Esperar a que el video tenga suficiente data
+      await new Promise(resolve => {
+        const check = () => {
+          if (video.videoWidth > 0 && video.videoHeight > 0) resolve();
+          else setTimeout(check, 50);
+        };
+        check();
+      });
+
+      // Pequeña pausa para estabilizar exposición (mejora la captura)
+      await new Promise(r => setTimeout(r, 300));
+
+      // Ajustar canvas y capturar frame
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      // espejo horizontal para selfies
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const dataUrl = canvas.toDataURL('image/png');
+      addPhoto(dataUrl);
+
+      // Detener cámara inmediatamente
+      stopCamera();
+
+    } catch (err) {
+      console.error('Error accediendo a cámara:', err);
+      alert('No fue posible acceder a la cámara. Revisa permisos o usa un dispositivo compatible.');
+    }
+  }
+
+  // Añade foto a colección y renderiza vistas
+  function addPhoto(dataUrl) {
+    photos.unshift(dataUrl); // añadir al inicio (más reciente primero)
+    renderCollage();
+    renderMosaic();
+  }
+
+  // Renderizar collage con las últimas 6 fotos (o placeholders)
+  function renderCollage() {
+    collageGrid.innerHTML = '';
+    if (photos.length === 0) {
+      collagePlaceholder.style.display = 'flex';
+      return;
+    }
+    collagePlaceholder.style.display = 'none';
+
+    const toShow = photos.slice(0, 6);
+    toShow.forEach((src, idx) => {
+      const item = document.createElement('div');
+      item.className = 'collage-item';
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = `Foto ${idx + 1}`;
+      img.loading = 'lazy';
+      item.appendChild(img);
+      collageGrid.appendChild(item);
+
+      // click en collage abre modal con índice real en photos
+      item.addEventListener('click', () => {
+        openModal(idx);
+      });
+    });
+  }
+
+  // Renderizar mosaico (todas las fotos) y permitir seleccionar para ampliar
+  function renderMosaic() {
+    mosaic.innerHTML = '';
+    if (photos.length === 0) {
+      // mantener placeholders iniciales (ya en HTML) si no hay fotos
+      const placeholders = [
+        { w: 200, h: 150, t: 'Recuerdo 1' },
+        { w: 200, h: 150, t: 'Recuerdo 2' },
+        { w: 200, h: 150, t: 'Recuerdo 3' }
+      ];
+      placeholders.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'card tile';
+        const img = document.createElement('img');
+        img.src = `https://placehold.co/${p.w}x${p.h}?text=${encodeURIComponent(p.t)}`;
+        img.alt = p.t;
+        card.appendChild(img);
+        mosaic.appendChild(card);
+      });
+      return;
+    }
+
+    photos.forEach((src, i) => {
+      const card = document.createElement('div');
+      card.className = 'card tile';
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = `Recuerdo ${i + 1}`;
+      card.appendChild(img);
+      mosaic.appendChild(card);
+
+      card.addEventListener('click', () => {
+        openModal(i);
+      });
+    });
+  }
+
+  // Modal: abrir con índice
+  function openModal(index) {
+    currentModalIndex = index;
+    modalImg.src = photos[index] || 'https://placehold.co/800x600?text=Sin+imagen';
+    modal.classList.remove('hidden');
+    modal.focus();
+  }
+
+  function closeModalFn() {
+    modal.classList.add('hidden');
+  }
+
+  prevImg.addEventListener('click', () => {
+    if (photos.length === 0) return;
+    currentModalIndex = (currentModalIndex - 1 + photos.length) % photos.length;
+    modalImg.src = photos[currentModalIndex];
+  });
+
+  nextImg.addEventListener('click', () => {
+    if (photos.length === 0) return;
+    currentModalIndex = (currentModalIndex + 1) % photos.length;
+    modalImg.src = photos[currentModalIndex];
+  });
+
+  closeModal.addEventListener('click', closeModalFn);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModalFn();
+  });
+
+  // Crear un collage compositado en canvas (para compartir o descargar)
+  async function createCompositeBlob() {
+    if (photos.length === 0) {
+      // crear placeholder
+      const res = await fetch('https://placehold.co/1200x800?text=Mi+Collage+de+Sonrisas');
+      const blob = await res.blob();
+      return blob;
+    }
+
+    // Configuración: 3 columnas
+    const cols = 3;
+    const rows = Math.ceil(Math.min(photos.length, 9) / cols); // hasta 9
+    const cellW = 400;
+    const cellH = 300;
+    const width = cols * cellW;
+    const height = rows * cellH;
+
+    const off = document.createElement('canvas');
+    off.width = width;
+    off.height = height;
+    const ctx = off.getContext('2d');
+
+    // fondo suave
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+
+    const drawPromises = photos.slice(0, cols * rows).map(async (dataUrl, idx) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = dataUrl;
+      await new Promise((res, rej) => {
+        img.onload = res;
+        img.onerror = () => res(); // avanzar aun si falla
+      });
+      const x = (idx % cols) * cellW;
+      const y = Math.floor(idx / cols) * cellH;
+      // ajuste de cover
+      const ratio = Math.max(cellW / img.width, cellH / img.height);
+      const sw = cellW / ratio;
+      const sh = cellH / ratio;
+      const sx = (img.width - sw) / 2;
+      const sy = (img.height - sh) / 2;
+      try {
+        ctx.drawImage(img, sx, sy, sw, sh, x, y, cellW, cellH);
+      } catch (err) {
+        // si falla dibujar imagen (cors), dibujar placeholder
+        ctx.fillStyle = '#eee';
+        ctx.fillRect(x + 10, y + 10, cellW - 20, cellH - 20);
+      }
+    });
+
+    await Promise.all(drawPromises);
+
+    return new Promise(resolve => {
+      off.toBlob(blob => resolve(blob), 'image/png', 0.9);
+    });
+  }
+
+  // Compartir: intenta usar Web Share API con archivos; si no, abrir imagen en nueva pestaña
+  async function shareCollage() {
+    try {
+      const blob = await createCompositeBlob();
+      const file = new File([blob], 'collage-sonrisas.png', { type: blob.type });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Mi Collage de Sonrisas',
+          text: 'Compartiendo mis mejores sonrisas!'
+        });
+      } else if (navigator.share) {
+        // fallback: compartir sólo texto + URL
+        await navigator.share({
+          title: 'Mi Collage de Sonrisas',
+          text: 'He creado un collage de sonrisas. ¡Descárgalo desde esta página!'
+        });
+        alert('Tu dispositivo no permite compartir archivos directamente. Puedes descargar el collage y compartirlo manualmente.');
+      } else {
+        // alternativa: abrir imagen en nueva pestaña para que el usuario la guarde
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+        alert('Se abrió el collage en una nueva pestaña. Descárgalo y compártelo desde allí.');
+      }
+    } catch (err) {
+      console.error('Error compartiendo:', err);
+      alert('No fue posible compartir el collage.');
+    }
+  }
+
+  // Descargar collage
+  async function downloadCollage() {
+    const blob = await createCompositeBlob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'collage-sonrisas.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
+
+  // Eventos
+  captureBtn.addEventListener('click', async () => {
+    captureBtn.disabled = true;
+    captureBtn.classList.add('loading');
+    await startAndCapture();
+    captureBtn.disabled = false;
+    captureBtn.classList.remove('loading');
+  });
+
+  shareBtn.addEventListener('click', async () => {
+    shareBtn.disabled = true;
+    await shareCollage();
+    shareBtn.disabled = false;
+  });
+
+  downloadBtn.addEventListener('click', downloadCollage);
+
+  // Inicializar render
+  renderCollage();
+  renderMosaic();
+
+  // limpiar cámara si el usuario sale de la pestaña
+  window.addEventListener('beforeunload', stopCamera);
+})();
+// === TERMINA EL CÓDIGO JAVASCRIPT DE LA HERRAMIENTA ===
+</script>
+
+<style>
+/* === COMIENZA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+/* Respetar variables globales obligatorias para colores, fuentes y sombras */
+:root {
+  /* las siguientes variables se asumen definidas a nivel de la app;
+     se añaden valores por defecto sólo como backup visual local (puede omitirse si ya existen) */
+  --app-bg: var(--app-bg, #f6f7fb);
+  --card-bg: var(--card-bg, #ffffff);
+  --text-color: var(--text-color, #0f1724);
+  --text-secondary: var(--text-secondary, #667085);
+  --accent: var(--accent, 34 197 94); /* rgb(...) */
+  --accent-secondary: var(--accent-secondary, 99 102 241);
+  --card-border: var(--card-border, 1px solid rgba(15,23,36,0.06));
+  --shadow-color: var(--shadow-color, 0 8px 24px rgba(15,23,36,0.08));
+  --font-family-sans: var(--font-family-sans, "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial);
+  --font-family-mono: var(--font-family-mono, "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono");
+}
+
+/* Layout básico */
+.container {
+  font-family: var(--font-family-sans);
+  color: var(--text-color);
+  background: var(--app-bg);
+  padding: 2rem;
+  min-height: calc(100vh - 4rem);
+}
+
+.back-link {
+  display: inline-block;
+  color: rgb(var(--accent-secondary));
+  margin-bottom: 1rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Hero */
+.hero {
+  background: var(--card-bg);
+  border: var(--card-border);
+  box-shadow: var(--shadow-color);
+  padding: 1.25rem 1.25rem;
+  border-radius: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.hero-title {
+  color: rgb(var(--accent));
+  font-family: var(--font-family-sans);
+  font-size: 1.6rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.hero-sub {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Botones */
+.btn {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text-color);
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.6rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  box-shadow: none;
+  font-size: 0.95rem;
+}
+
+.btn:hover { transform: translateY(-2px); }
+
+.btn.primary {
+  background: linear-gradient(90deg, rgba(var(--accent),0.08), rgba(var(--accent-secondary),0.08));
+  border: 1px solid rgba(var(--accent),0.15);
+  color: rgb(var(--accent));
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}
+
+.btn.accent {
+  background: rgb(var(--accent-secondary));
+  color: white;
+  border: none;
+  box-shadow: 0 6px 18px rgba(99,102,241,0.18);
+}
+
+.btn.loading {
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+/* Workspace grid */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  border: var(--card-border);
+  box-shadow: var(--shadow-color);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+/* Collage area */
+.collage {
+  min-height: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.collage-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.collage-placeholder img {
+  width: 100%;
+  max-width: 680px;
+  border-radius: 0.6rem;
+  border: 1px solid var(--card-border);
+}
+
+.placeholder-text {
+  font-size: 0.95rem;
+}
+
+/* Grid dentro del collage: diseño tipo collage responsivo */
+.collage-grid {
+  position: relative;
+  width: 100%;
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(100px, 1fr);
+}
+
+/* adaptative sizes for dynamic collage layout */
+.collage-item {
+  overflow: hidden;
+  border-radius: 0.6rem;
+  border: 1px solid var(--card-border);
+  background: linear-gradient(180deg, rgba(var(--accent),0.03), transparent);
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.collage-item:hover { transform: translateY(-6px); box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+
+.collage-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Panel lateral */
+.panel-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.camera-preview {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px dashed var(--card-border);
+  background: linear-gradient(180deg, rgba(var(--accent-secondary),0.03), transparent);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 220px;
+  margin-bottom: 0.75rem;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Mosaic */
+.mosaic {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.tile {
+  padding: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid var(--card-border);
+}
+
+/* Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.modal.hidden { display: none; }
+
+.modal-content {
+  background: var(--card-bg);
+  border: var(--card-border);
+  box-shadow: var(--shadow-color);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 90%;
+}
+
+.modal-content img {
+  width: 800px;
+  max-width: calc(100vw - 200px);
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+.modal-close {
+  position: absolute;
+  right: 1.5rem;
+  top: 1rem;
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+.modal-nav {
+  background: transparent;
+  border: none;
+  font-size: 1.6rem;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+/* pequeños utilitarios */
+.hidden { display: none; }
+.visually-hidden { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px,1px,1px,1px); white-space: nowrap; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .workspace { grid-template-columns: 1fr 320px; }
+  .modal-content img { max-width: calc(100vw - 150px); }
+}
+
+@media (max-width: 768px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .mosaic {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .collage-grid { grid-template-columns: repeat(2, 1fr); }
+  .modal-content img { width: 90vw; max-width: 90vw; }
+}
+
+/* Tipografía mono (si se necesita en algún código o etiqueta) */
+.code {
+  font-family: var(--font-family-mono);
+  background: rgba(0,0,0,0.04);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.3rem;
+  font-size: 0.88rem;
+}
+
+/* === TERMINA EL CÓDIGO CSS DE LA HERRAMIENTA === */
+</style>
